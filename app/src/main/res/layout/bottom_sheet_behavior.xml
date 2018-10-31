@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_sheet_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorBackground"
+    android:orientation="vertical"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="55dp"
+    app:layout_behavior="@string/bottom_sheet_behavior">
+
+    <SeekBar
+        android:id="@+id/sb"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:paddingEnd="0dp"
+        android:paddingStart="0dp"
+        android:progressBackgroundTint="@color/colorNoticicaionBG" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="55dp"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:src="@drawable/mp3" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txv_title"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:freezesText="true"
+                android:gravity="left|bottom"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:text="SongTitle"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txv_artist"
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:gravity="left|top"
+                android:text="SongArtist"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/imgbtn_repeat"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:background="#00000000"
+            app:srcCompat="@drawable/repeat" />
+
+        <ImageButton
+            android:id="@+id/imgbtn_play"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:background="#00000000"
+            android:src="@drawable/play" />
+
+        <ImageButton
+            android:id="@+id/imgbtn_next"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:background="#00000000"
+            android:src="@drawable/playnext" />
+    </LinearLayout>
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:paddingBottom="12dp"
+        android:paddingEnd="48dp"
+        android:paddingLeft="48dp"
+        android:paddingRight="48dp"
+        android:paddingStart="48dp"
+        android:paddingTop="12dp"
+        android:text="This is a demo for me to practice Bottom Sheet and I hope this demo could help you,too. ---- lijiankun24"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+</LinearLayout>
