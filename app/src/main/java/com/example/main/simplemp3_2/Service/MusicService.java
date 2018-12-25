@@ -86,7 +86,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         songlist = new ArrayList<>();
         rand = new Random();
         initNotification = new initNotification(this,songlist);
-        setSong(songPosn);
+        setSongPos(songPosn);
         setRepeatMode(REPEAT);
     }
 
@@ -131,7 +131,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.start();
     }
 
-    public void setSong(int songIndex) {
+    public void setSongPos(int songIndex) {
         songPosn = songIndex;
     }
 

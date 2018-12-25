@@ -5,8 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toolbar;
+
 import com.example.daniel.myjar.Mp3File;
 
 
@@ -14,22 +17,24 @@ public class MusicInfo extends AppCompatActivity {
     private EditText edtTitle, edtArtist, edtAlbum, edtStyle;
     private String songTitle, songArtist, songAlbum, songStyle,songPath;
     private long songId,songDuration;
-    private ImageButton imgbtnOK, imgbtnCancel;
-    private final static String TAG = "MusicInfo";
+    private Button btnOK, btnCancel;
+    private final static String TAG = "MusicInfoActivity";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.music_info);
 
+        setTitle("編輯");
+
         edtTitle = findViewById(R.id.edtTitle);
         edtArtist = findViewById(R.id.edtArtist);
         edtAlbum = findViewById(R.id.edtAlbum);
         edtStyle = findViewById(R.id.edtStyle);
-        imgbtnOK = findViewById(R.id.imgbtnOK);
-        imgbtnCancel = findViewById(R.id.imgbtnCancel);
+        btnOK = findViewById(R.id.btnOK);
+        btnCancel = findViewById(R.id.btnCancel);
 
-        imgbtnOK.setOnClickListener(new View.OnClickListener() {
+        btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.i("TAG", "onClick: " + songPath);
@@ -37,7 +42,7 @@ public class MusicInfo extends AppCompatActivity {
             }
         });
 
-        imgbtnCancel.setOnClickListener(new View.OnClickListener() {
+        btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 

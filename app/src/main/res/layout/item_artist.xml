@@ -56,11 +56,10 @@
 
         <ImageButton
             android:id="@+id/song_setting"
-            android:layout_width="match_parent"
+            android:layout_width="30dp"
             android:layout_height="match_parent"
             android:background="#00000000"
             android:src="@drawable/set"
-            android:layout_weight="2.5"
             android:focusable="false"
             android:clickable="true"/>
     </LinearLayout>

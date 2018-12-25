@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import com.example.main.simplemp3_2.Fragment.ArtistFragment;
 import com.example.main.simplemp3_2.Fragment.FolderFragment;
 import com.example.main.simplemp3_2.Fragment.PlayFragment;
+import com.example.main.simplemp3_2.Fragment.PlayListFragment;
 
 public class PagerAdapter extends FragmentPagerAdapter {
     private int numOfTab;
@@ -33,6 +35,9 @@ public class PagerAdapter extends FragmentPagerAdapter {
             case 2:
                 FolderFragment folderFragment = new FolderFragment();
                 return folderFragment;
+            case 3:
+                PlayListFragment playListFragment = new PlayListFragment();
+                return playListFragment;
             default:
                 return null;
         }
@@ -47,6 +52,8 @@ public class PagerAdapter extends FragmentPagerAdapter {
                 return "演出者";
             case 2:
                 return "資料夾";
+            case 3:
+                return "播放列表";
             default:
                 return null;
         }

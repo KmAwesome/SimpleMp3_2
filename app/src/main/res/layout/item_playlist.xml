@@ -10,15 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="45dp">
 
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="60dp"
-        android:layout_height="match_parent"
-        android:padding="6dp"
-        android:src="@drawable/folder" />
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:src="@drawable/playlist_play" />
 
         <TextView
-            android:id="@+id/txv_folderName"
+            android:id="@+id/txv_playlist"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -27,15 +27,16 @@
             android:textColor="@color/colorTitle"
             android:textSize="18sp" />
 
-    <ImageButton
-        android:id="@+id/imgbtn_setting"
-        android:layout_width="30dp"
-        android:layout_height="match_parent"
-        android:background="#00000000"
-        android:clickable="true"
-        android:focusable="false"
-        android:src="@drawable/set" />
+        <ImageButton
+            android:id="@+id/imgbtn_playlist_setting"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:background="#00000000"
+            android:clickable="true"
+            android:focusable="false"
+            android:src="@drawable/set" />
 
     </LinearLayout>
+
 
 </LinearLayout>

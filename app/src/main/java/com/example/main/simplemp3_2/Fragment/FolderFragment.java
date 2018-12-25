@@ -42,7 +42,7 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
         songlist = new ArrayList<>();
         folderSonglist = new ArrayList<>();
         songlist = ((MainActivity)getActivity()).getSonglist();
-        folderAdapter = new FolderAdapter(context,getFolderName());
+        folderAdapter = new FolderAdapter(context,getFolderName(),songlist);
         songFragment = new SongFragment();
     }
 
@@ -98,7 +98,6 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
                 folderSonglist.add(songlist.get(i));
             }
         }
-
         return folderSonglist;
     }
 

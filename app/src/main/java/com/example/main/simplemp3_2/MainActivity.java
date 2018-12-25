@@ -18,22 +18,39 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.example.main.simplemp3_2.Fragment.ArtistFragment;
+import com.example.main.simplemp3_2.Fragment.PlayListFragment;
 import com.example.main.simplemp3_2.Model.InitSongList;
 import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.Model.SongPlayList;
 import com.example.main.simplemp3_2.Service.MusicService;
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -55,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public final static String REPEAT = "Repeat";
     public final static String REPEATONE = "RepeatOne";
     public final static String SHUFFLE = "Shuffle";
+    public static ArrayList<SongPlayList> playList;
     public ArrayList<Song> songlist,tempSonglist;
     public TextView txv_showTitle,txv_showArtist;
     public ImageButton imgbtn_playSong, imgbtn_playNext,imgbtn_repeat, imgbtn_playPrev;
@@ -134,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
+        tabLayout.addTab(tabLayout.newTab());
 
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(),tabLayout.getTabCount());
         viewPager.setAdapter(pagerAdapter);
@@ -142,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
     private void initControllerSongList(){
         initSongList = new InitSongList(this);
+        readPlayList(this);
         songlist = new ArrayList<>();
         tempSonglist = new ArrayList<>();
         songlist = initSongList.getSongList();
@@ -163,6 +183,21 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MusicService.SENDSONG_TEXT);
         registerReceiver(setSongTextReceiver,intentFilter);
+    }
+
+    public void readPlayList(Context context) {
+        playList = new ArrayList<>();
+        File file = context.getFileStreamPath("PlayList.bin");
+        if (file.exists()){
+            try {
+                InputStream inputStream = context.openFileInput("PlayList.bin");
+                if (inputStream != null) {
+                    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                    playList = (ArrayList<SongPlayList>)objectInputStream.readObject();
+                    Log.i(TAG, "readPlayList : " + playList.size());
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
     }
 
     public void playSong(){
@@ -198,6 +233,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         setViewTextAndmusicHandler();
     }
 
+    public void setSongPos(int pos){
+        if (songlist.size() == 0) return;
+        musicSrv.setSongPos(pos);
+    }
+
     public boolean isPlaying() {
         return musicSrv.isPlaying();
     }
@@ -223,17 +263,20 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     }
 
     public void refreshSongList(){
+        if (tempSonglist == null){ tempSonglist = new ArrayList<>(); }
         tempSonglist = initSongList.getSongList();
     }
 
     public void setSonglist(ArrayList<Song> songlist){
+        if (this.songlist == null) {this.songlist = new ArrayList<>();}
         this.songlist = songlist;
         musicSrv.setSongList(songlist);
     }
 
     public ArrayList<Song> getSonglist() {
+        if (songlist == null) {songlist = new ArrayList<>();}
         songlist = initSongList.getSongList();
-        return this.songlist;
+        return songlist;
     }
 
     @Override
@@ -274,14 +317,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-
-    }
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) { }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
+    public void onStartTrackingTouch(SeekBar seekBar) { }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
@@ -360,4 +399,5 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             setViewTextAndmusicHandler();
         }
     };
+
 }

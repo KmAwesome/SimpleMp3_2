@@ -1,20 +1,25 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+
+import com.example.main.simplemp3_2.Fragment.PlayListFragment;
+import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Model.SelectPlayListFragmentDialog;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Model.Song;
 
 import java.util.ArrayList;
 
 public class ArtistAdapter extends BaseAdapter{
-    private String TAG = "ArtistAdapter";
+    private static String TAG = "ArtistAdapter";
     private ArrayList<String> artistList;
     private LayoutInflater layoutInflater;
     private ArrayList<Song> songlist;
@@ -25,25 +30,6 @@ public class ArtistAdapter extends BaseAdapter{
         layoutInflater = LayoutInflater.from(c);
         this.artistList = artistList;
         this.songlist = songlist;
-    }
-
-    class ViewHolder{
-        public ImageButton songSetting;
-        public TextView artistView;
-        public TextView songCountView;
-
-        public ViewHolder(ImageButton songSetting, TextView artistView, TextView songCountView) {
-            this.songSetting = songSetting;
-            this.artistView = artistView;
-            this.songCountView = songCountView;
-            
-            songSetting.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Log.i(TAG, "onClick: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                }
-            });
-        }
     }
 
     @Override
@@ -61,11 +47,29 @@ public class ArtistAdapter extends BaseAdapter{
         return 0;
     }
 
+    class ViewHolder implements View.OnClickListener{
+        private ImageButton songSetting;
+        private TextView artistView;
+        private TextView songCountView;
+
+        public ViewHolder(ImageButton m_songSetting, TextView m_artistView, TextView m_songCountView) {
+            artistView = m_artistView;
+            songCountView = m_songCountView;
+            songSetting = m_songSetting;
+            songSetting.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            showPopupMenu(view);
+        }
+    }
+
     @Override
     public View getView(int position, View converView, ViewGroup viewGroup) {
         ViewHolder viewholder;
         if(converView == null){
-            converView = layoutInflater.inflate(R.layout.item_file,null);
+            converView = layoutInflater.inflate(R.layout.item_artist,null);
             TextView artistView = converView.findViewById(R.id.song_Artist);
             ImageButton songSetting = converView.findViewById(R.id.song_setting);
             TextView songCountView = converView.findViewById(R.id.song_num);
@@ -74,9 +78,9 @@ public class ArtistAdapter extends BaseAdapter{
         }else {
             viewholder = (ViewHolder) converView.getTag();
         }
+        viewholder.songSetting.setTag(position);
         viewholder.artistView.setText(artistList.get(position));
         viewholder.songCountView.setText("曲目 " + getSongCounter(artistList.get(position)));
-        viewholder.songSetting.getTag(position);
         
         return converView;
     }
@@ -91,6 +95,57 @@ public class ArtistAdapter extends BaseAdapter{
             }
         }
         return String.valueOf(count);
+    }
+
+    private void showPopupMenu(View view){
+        final int postion = (int)view.getTag();
+        PopupMenu popupMenu = new PopupMenu(context,view);
+        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_artist,popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                switch (menuItem.getItemId()){
+                    case R.id.playAll:
+                        playAll(artistList.get(postion));
+                        break;
+                    case R.id.addToList:
+                        SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
+                        selectPlayListFragmentDialog.setAddtoList(getArtistSongs(artistList.get(postion)));
+                        selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
+                        break;
+                }
+                return true;
+            }
+        });
+        popupMenu.show();
+    }
+
+    private ArrayList<String> getArtistSongs(String artist){
+        ArrayList<String> mSongs;
+        mSongs = new ArrayList<>();
+        if (songlist != null){
+            for (int i=0; i<songlist.size(); i++){
+                if (songlist.get(i).getArtist().contains(artist)){
+                    mSongs.add(songlist.get(i).getTitle());
+                }
+            }
+        }
+        return mSongs;
+    }
+
+    private void playAll(String artist){
+        ArrayList<Song> mSongs;
+        mSongs = new ArrayList<>();
+        if (songlist != null){
+            for (int i=0; i<songlist.size(); i++){
+                if (songlist.get(i).getArtist().contains(artist)){
+                    mSongs.add(songlist.get(i));
+                }
+            }
+        }
+        ((MainActivity)context).setSonglist(mSongs);
+        ((MainActivity)context).setSongPos(0);
+        ((MainActivity)context).playSong();
     }
 
 }

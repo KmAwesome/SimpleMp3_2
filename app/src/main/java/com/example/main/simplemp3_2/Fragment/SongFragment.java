@@ -55,5 +55,4 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
         ((MainActivity)getActivity()).playSong();
     }
 
-
 }
