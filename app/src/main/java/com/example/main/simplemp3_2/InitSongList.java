@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2.Model;
+package com.example.main.simplemp3_2;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -6,29 +6,28 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
-
-import com.google.android.gms.dynamic.IFragmentWrapper;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.datatype.Duration;
-
 public class InitSongList {
     private ArrayList<Song> songlist;
+    private ArrayList<Song> allSongList;
     private Context context;
     private String TAG = "InitSongList";
+    private MusicController musicController;
 
     public InitSongList(Context context) {
         this.context = context;
         songlist = new ArrayList<>();
+        initSongList();
+        if (context instanceof MainActivity){
+            musicController = ((MainActivity)context).getMusicController();
+        }
     }
 
-    public ArrayList<Song> getSongList() {
-
+    public void initSongList() {
         if (songlist != null){
             songlist.clear();
         }
@@ -78,8 +77,19 @@ public class InitSongList {
             }
         });
 
-        Log.i(TAG, "getSonglist: " + songlist.size());
+        allSongList = songlist;
+    }
 
+    public ArrayList<Song> getAllSongList() {
+        return allSongList;
+    }
+
+    public void setSongList(ArrayList<Song> songs) {
+        songlist = songs;
+        musicController.setSongList(songs);
+    }
+
+    public ArrayList<Song> getSongList() {
         return songlist;
     }
 

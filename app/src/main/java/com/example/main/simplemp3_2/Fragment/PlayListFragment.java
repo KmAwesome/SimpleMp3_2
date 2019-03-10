@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,34 +14,32 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import com.example.main.simplemp3_2.Adapter.PlayListAdapter;
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.Song;
-import com.example.main.simplemp3_2.Model.SongPlayList;
+import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.SongListInFile;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
-
-
-import java.io.ObjectOutputStream;
 
 import java.util.ArrayList;
 
-
-import static com.example.main.simplemp3_2.MainActivity.playList;
-
 public class PlayListFragment extends Fragment implements AdapterView.OnItemClickListener,View.OnClickListener {
-    private static final String TAG = "PlayListFragment";
+    private String TAG = "PlayListFragment";
     private Context context;
     private ListView playListView;
     private PlayListAdapter playListAdapter;
-    private LayoutInflater layoutInflater;
     private ImageButton imgbtnAdd;
     private Bundle bundle;
     private ArrayList<Song> songlist;
+    private ArrayList<String> songTitleList;
+    private SongListInFile songListInFile;
+    private InitSongList initSongList;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        layoutInflater = LayoutInflater.from(context);
+        initSongList = ((MainActivity)context).getInitSongList();
     }
 
     @Override
@@ -50,33 +47,35 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
         super.onCreate(savedInstanceState);
         bundle = new Bundle();
         songlist = new ArrayList<>();
-        songlist = ((MainActivity)getActivity()).getSonglist();
+        songlist = initSongList.getSongList();
+        songListInFile = new SongListInFile(this.getContext());
+        songTitleList = songListInFile.readSongTitleInFile();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_playlist,null);
-        imgbtnAdd = v.findViewById(R.id.imgbtn_add);
+        View view = inflater.inflate(R.layout.fragment_playlist,null);
+        imgbtnAdd = view.findViewById(R.id.imgbtn_add);
+        playListView = view.findViewById(R.id.playListView);
         imgbtnAdd.setOnClickListener(this);
-        playListView = v.findViewById(R.id.playListView);
-        playListAdapter = new PlayListAdapter(context, songlist,this);
-        playListView.setAdapter(playListAdapter);
         playListView.setOnItemClickListener(this);
-        return v;
+        playListAdapter = new PlayListAdapter(context, songTitleList,this);
+        playListView.setAdapter(playListAdapter);
+        return view;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        bundle.putSerializable("playSongList", songListInFile.getSongListInFile(songTitleList.get(i)));
+        SongFragment songFragment = new SongFragment();
+        songFragment.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
     }
 
     @Override
     public void onClick(View view) {
         showAlertDialog();
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        bundle.putSerializable("playSongList",getSongsInPlayList(playList.get(i).getPlayListSong()));
-        SongFragment songFragment = new SongFragment();
-        songFragment.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
     }
 
     private void showAlertDialog() {
@@ -86,10 +85,7 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
         alertDialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                SongPlayList songPlayList = new SongPlayList();
-                songPlayList.setTitle(editText.getText().toString());
-                playList.add(songPlayList);
-                writePlayListToFile();
+                songListInFile.writeTitleListToFile(editText.getText().toString());
                 playListAdapter.notifyDataSetChanged();
             }
         });
@@ -102,28 +98,4 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
         });
         alertDialog.create().show();
     }
-
-    private ArrayList<Song> getSongsInPlayList(ArrayList<String> songTitleList) {
-        ArrayList<Song> songs,playSongs;
-        playSongs = new ArrayList<>();
-        songs = ((MainActivity)getActivity()).getSonglist();
-        for (int i=0; i<songs.size(); i++) {
-            if (songTitleList.contains(songs.get(i).getTitle())){
-                playSongs.add(songs.get(i));
-            }
-        }
-        return playSongs;
-    }
-
-    public void writePlayListToFile() {
-        try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("PlayList.bin",Context.MODE_PRIVATE));
-            objectOutputStream.writeObject(playList);
-            objectOutputStream.close();
-            Log.i(TAG, "writePlayListToFile : playList.size = " + playList.size());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 }

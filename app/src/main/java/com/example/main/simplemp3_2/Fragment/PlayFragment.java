@@ -10,11 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
+
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.InitSongList;
+import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.Adapter.SongAdapter;
 import java.util.ArrayList;
 
@@ -24,20 +25,23 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     private SongAdapter songAdt;
     private ArrayList<Song> songlist;
     private Context context;
-    public static int songPosn;
+    private InitSongList initSongList;
+    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         songlist = new ArrayList<>();
-        songlist = ((MainActivity)getActivity()).getSonglist();
-        songAdt = new SongAdapter(context,songlist,this.getActivity());
+        songlist = initSongList.getSongList();
+        songAdt = new SongAdapter(context, songlist);
         if (songlist.size() > 0){
             ((MainActivity) getActivity()).txv_showTitle.setText(songlist.get(0).getTitle());
             ((MainActivity) getActivity()).txv_showArtist.setText(songlist.get(0).getArtist());
@@ -56,22 +60,9 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        songPosn = i;
-        ((MainActivity)getActivity()).getSonglist();
-        ((MainActivity)getActivity()).setSonglist(songlist);
-        ((MainActivity)getActivity()).playSong();
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser && songlist != null) {
-            Log.i(TAG, "setUserVisibleHint: true");
-            ((MainActivity)getActivity()).refreshSongList();
-            songAdt.notifyDataSetChanged();
-        } else {
-            Log.i(TAG, "setUserVisibleHint: false");
-        }
+        initSongList.setSongList(songlist);
+        musicController.setSongPos(i);
+        musicController.playSong();
     }
 
 }

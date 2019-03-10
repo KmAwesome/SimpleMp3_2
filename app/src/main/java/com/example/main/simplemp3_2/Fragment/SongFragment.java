@@ -10,11 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.Adapter.SongAdapter;
-import static com.example.main.simplemp3_2.Fragment.PlayFragment.songPosn;
 import java.util.ArrayList;
 
 public class SongFragment extends Fragment implements AdapterView.OnItemClickListener{
@@ -22,11 +23,15 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     private ListView songView;
     public SongAdapter songAdapter;
     private ArrayList<Song> songlist;
+    private InitSongList initSongList;
+    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -41,7 +46,7 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.m_listview, container, false);
         songView = view.findViewById(R.id.song_list);
-        songAdapter = new SongAdapter(context,songlist,this.getActivity());
+        songAdapter = new SongAdapter(context, songlist);
         songView.setAdapter(songAdapter);
         songView.setOnItemClickListener(this);
         return view;
@@ -50,9 +55,9 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Log.i("TAG", "onItemClick:  " + i);
-        songPosn = i;
-        ((MainActivity)getActivity()).setSonglist(songlist);
-        ((MainActivity)getActivity()).playSong();
+        initSongList.setSongList(songlist);
+        musicController.setSongPos(i);
+        musicController.playSong();
     }
 
 }

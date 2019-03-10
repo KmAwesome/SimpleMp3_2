@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.INotificationSideChannel;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +13,11 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.Adapter.FolderAdapter;
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.Song;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -28,11 +31,15 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
     private ArrayList<Song> songlist,folderSonglist;
     private Bundle bundle;
     private SongFragment songFragment;
+    private InitSongList initSongList;
+    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        initSongList = ((MainActivity) context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -41,7 +48,7 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
         bundle = new Bundle();
         songlist = new ArrayList<>();
         folderSonglist = new ArrayList<>();
-        songlist = ((MainActivity)getActivity()).getSonglist();
+        songlist = initSongList.getSongList();
         folderAdapter = new FolderAdapter(context,getFolderName(),songlist);
         songFragment = new SongFragment();
     }
@@ -69,8 +76,6 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
         File file;
         ArrayList<String> fileStr = new ArrayList<>();
         fileArrayList = new ArrayList<>();
-
-        if (songlist == null) songlist = ((MainActivity)getActivity()).getSonglist();
         str = new String[songlist.size()];
 
         for(int i = 0; i< songlist.size(); i++){
@@ -98,6 +103,7 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
                 folderSonglist.add(songlist.get(i));
             }
         }
+        musicController.setSongList(folderSonglist);
         return folderSonglist;
     }
 

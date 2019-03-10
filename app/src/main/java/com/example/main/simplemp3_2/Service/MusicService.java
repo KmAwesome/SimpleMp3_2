@@ -19,80 +19,41 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-import static com.example.main.simplemp3_2.Fragment.PlayFragment.songPosn;
-import static com.example.main.simplemp3_2.MainActivity.REPEAT;
-import static com.example.main.simplemp3_2.MainActivity.REPEATONE;
-import static com.example.main.simplemp3_2.MainActivity.SHUFFLE;
+
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
-    public static final String SENDSONG_TEXT = "sendSongText";
+        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+    public static final String PLAY = "PLAY";
+    public static final String PAUSE = "PAUSE";
+    public static final String SENDSONG_TEXT = "sendSongText";;
+    public final static String REPEAT = "Repeat";
+    public final static String REPEATONE = "RepeatOne";
+    public final static String SHUFFLE = "Shuffle";
     public final IBinder musicBind = new MusicBinder();
     private String TAG = "MusicService";
     private MediaPlayer player;
-    private String songTitile = "", songArtist = "",repeatMode = "";
-    private boolean tagPlay = false;
+    private String songTitile = "", songArtist = "", repeatMode = "";
     private Random rand;
-    private Intent intentSongText;
+    private Intent intentSongText, updateUiIntent;
     private Song playItemSong;
     private ArrayList<Song> songlist;
-    private mPhoneListener pListener;
+    private InitSongList initSongList;
     public initNotification initNotification;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        songPosn = 0;
-        initMusicPlayer();
-    }
-    
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (pListener == null){
-            TelephonyManager tm = (TelephonyManager) getApplicationContext().getSystemService(TELEPHONY_SERVICE);
-            pListener = new mPhoneListener();
-            tm.listen(pListener,PhoneStateListener.LISTEN_CALL_STATE);
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "onDestroy: ");
-        stopForeground(true);
-        unregisterReceiver(initNotification);
-        stopSelf();
-    }
-
-    public void initMusicPlayer() {
-        Log.i(TAG, "initMusicPlayer: ");
-        player = new MediaPlayer();
-        player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setOnPreparedListener(this);
-        player.setOnCompletionListener(this);
-        player.setOnErrorListener(this);
-        intentSongText = new Intent(SENDSONG_TEXT);
-        songlist = new ArrayList<>();
-        rand = new Random();
-        initNotification = new initNotification(this,songlist);
-        setSongPos(songPosn);
-        setRepeatMode(REPEAT);
-    }
+    private int songPosn;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
-            Log.i(TAG, "getMusicService: ");
+            Log.i(TAG, "MUSIC_BIND_SUCCESS");
             return MusicService.this;
         }
     }
@@ -100,88 +61,98 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i(TAG, "onBind: ");
         return musicBind;
     }
 
     public boolean onUnbind(Intent intent) {
-        Log.i(TAG, "onUnbind: ");
         return false;
     }
-    
+
     @Override
-    public void onCompletion(MediaPlayer mp) {
-        Log.i(TAG, "onCompletion: ");
-        if (player.getCurrentPosition() > 0) {
-            mp.reset();
-            playNext();
+    public void onCreate() {
+        super.onCreate();
+        initMusicPlayer();
+        updateUiIntent = new Intent();
+    }
+
+    public void initMusicPlayer() {
+        player = new MediaPlayer();
+        player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        player.setOnPreparedListener(this);
+        player.setOnCompletionListener(this);
+        player.setOnErrorListener(this);
+        setSongPos(0);
+        intentSongText = new Intent(SENDSONG_TEXT);
+        songlist = new ArrayList<>();
+        rand = new Random();
+        initNotification = new initNotification(this, songlist);
+        initSongList = new InitSongList(this);
+        songlist = initSongList.getSongList();
+        setRepeatMode(REPEAT);
+        player.reset();
+        try {
+            playItemSong = songlist.get(songPosn);
+            long currSong = playItemSong.getId();
+            Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+            player.setDataSource(getApplicationContext(), trackUri);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public boolean onError(MediaPlayer mp, int i, int i1) {
-        Log.i(TAG, "onError: ");
-        mp.reset();
-        return false;
-    }
-
-    @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        Log.i(TAG, "onPrepared: ");
         mediaPlayer.start();
     }
 
-    public void setSongPos(int songIndex) {
-        songPosn = songIndex;
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        mediaPlayer.reset();
+        playNext();
     }
 
-    public void setSongList(ArrayList<Song> songlist){
-        this.songlist = songlist;
-        initNotification.setNotificationSonglist(songlist);
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        mediaPlayer.reset();
+        mediaPlayer.start();
+        return false;
     }
 
     public void playSong() {
-        if (songlist.size() == 0) return;
-        tagPlay = true;
-        Log.i(TAG, "playSong: " + songlist.size());
         try {
             player.reset();
             playItemSong = songlist.get(songPosn);
             long currSong = playItemSong.getId();
             Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
             player.setDataSource(getApplicationContext(), trackUri);
+            player.prepareAsync();
             songTitile = playItemSong.getTitle();
             songArtist = playItemSong.getArtist();
-            player.prepareAsync();
+            updateUiIntent.setAction(PLAY);
+            sendBroadcast(updateUiIntent);
             intentSongText.putExtra("songTitle", songTitile);
             intentSongText.putExtra("songArtist", songArtist);
             sendBroadcast(intentSongText);
             initNotification.createNotification();
         } catch (Exception e) {
-            Log.i(TAG, "Error to play song ",e);
-            playNext();
+            e.printStackTrace();
         }
-
     }
 
     public void go() {
-        if (songlist.size() == 0) return;
-        tagPlay = true;
         player.start();
-        initNotification.createNotification();
-        sendBroadcast(intentSongText);
     }
 
     public void pausePlayer() {
-        if (songlist.size() == 0) return;
-        tagPlay = false;
         player.pause();
         initNotification.createNotification();
+        updateUiIntent.setAction(PAUSE);
+        sendBroadcast(updateUiIntent);
         sendBroadcast(intentSongText);
     }
 
     public void playPrev() {
-        if (songlist.size() == 0) return;
         if (songPosn == 0) {
             songPosn = songlist.size() - 1;
         } else if (songPosn > 0) {
@@ -191,8 +162,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void playNext() {
-        if (songlist.size() == 0) return;
-        switch (repeatMode){
+        switch (repeatMode) {
             case REPEAT:
                 songPosn++;
                 if (songPosn >= songlist.size()) songPosn = 0;
@@ -214,16 +184,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return player.isPlaying();
     }
 
-    public boolean tagIsPlaying() {
-        return tagPlay;
-    }
-
     public void seek(int posn) {
         player.seekTo(posn);
     }
 
-    public void setRepeatMode(String string){
-        switch (string){
+    public void setRepeatMode(String string) {
+        switch (string) {
             case REPEAT:
                 repeatMode = REPEAT;
                 break;
@@ -237,6 +203,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Log.i(TAG, "setRepeatMode: " + repeatMode);
     }
 
+    public void setSongList(ArrayList<Song> songs) {
+        songlist = songs;
+    }
+
+    public void setSongPos(int songIndex) {
+        songPosn = songIndex;
+    }
+
+    public int getSongPos() {
+        return songPosn;
+    }
+
     public int getPosn() {
         return player.getCurrentPosition();
     }
@@ -245,11 +223,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return player.getDuration();
     }
 
+    @Override
+    public void onDestroy() {
+        stopForeground(true);
+        stopSelf();
+    }
+
     public class initNotification extends BroadcastReceiver {
         private String TAG = "mNotification";
         public RemoteViews mRemoteViews;
         public NotificationManager mNotificationManager;
-        public Notification mBuilder,notification;
+        public Notification mBuilder, notification;
         private IntentFilter notiticationFilter;
         private ArrayList<Song> songlist;
         private Context context;
@@ -298,24 +282,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
 
         public void createNotification() {
-            if (mBuilder == null){
+            if (mBuilder == null) {
                 Log.i(TAG, "createNotification: ");
                 String CHANNEL_ID = "Channel01";
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (notificationChannel == null){
-                        notificationChannel = new NotificationChannel(CHANNEL_ID,"Channel_1",NotificationManager.IMPORTANCE_LOW);
-                        notificationChannel.setSound(null,null);
+                    if (notificationChannel == null) {
+                        notificationChannel = new NotificationChannel(CHANNEL_ID, "Channel_1", NotificationManager.IMPORTANCE_LOW);
+                        notificationChannel.setSound(null, null);
                         notificationChannel.enableVibration(false);
                         mNotificationManager.createNotificationChannel(notificationChannel);
                     }
-                    mBuilder = new Notification.Builder(context,CHANNEL_ID)
+                    mBuilder = new Notification.Builder(context, CHANNEL_ID)
                             .setChannelId(CHANNEL_ID)
                             .setSmallIcon(R.drawable.mp3)
                             .setCustomContentView(mRemoteViews)
                             .setContentIntent(pendingIntent)
                             .build();
                 }
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                     mBuilder = new Notification.Builder(context)
                             .setSmallIcon(R.drawable.mp3)
                             .setContent(mRemoteViews)
@@ -324,9 +308,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                             .build();
                 }
                 mBuilder.flags = Notification.FLAG_NO_CLEAR;
-                startForeground(1,mBuilder);
+                startForeground(1, mBuilder);
             }
-            setmRemoteViewText();
             setmRemoteViews();
         }
 
@@ -334,21 +317,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             this.songlist = songlist;
         }
 
-        public void setmRemoteViewText() {
-            if (mBuilder != null) {
-                mRemoteViews.setTextViewText(R.id.noteTitle, songlist.get(songPosn).getTitle());
-                mRemoteViews.setTextViewText(R.id.noteArtist, songlist.get(songPosn).getArtist());
-            }
-        }
-
         public void setmRemoteViews() {
             if (mBuilder != null) {
-                if (tagIsPlaying()) {
-                    mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.notepause);
-                } else {
-                    mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.noteplay);
-                }
-                mNotificationManager.notify(1,mBuilder);
+                mNotificationManager.notify(1, mBuilder);
             }
         }
 
@@ -372,34 +343,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.i(TAG, "prevNotification");
                 playPrev();
             }
-            setmRemoteViewText();
             setmRemoteViews();
         }
     }
-
-    /*
-     *Set phone listener
-     */
-    public class mPhoneListener extends PhoneStateListener {
-        private String TAG = "PhoneListener";
-
-        @Override
-        public void onCallStateChanged(int state, String incomingNumber) {
-            if (state == TelephonyManager.CALL_STATE_RINGING) {
-                Log.i(TAG, "CALL_STATE_RINGING ");
-                pausePlayer();
-            } else if(state == TelephonyManager.CALL_STATE_IDLE) {
-                Log.i(TAG, "CALL_STATE_IDLE " );
-
-            } else if(state == TelephonyManager.CALL_STATE_OFFHOOK) {
-                Log.i(TAG, "CALL_STATE_OFFHOOK ");
-                pausePlayer();
-            }
-            super.onCallStateChanged(state, incomingNumber);
-
-        }
-    }
-
-
 
 }

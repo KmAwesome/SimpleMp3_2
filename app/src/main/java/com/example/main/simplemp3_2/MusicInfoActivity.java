@@ -13,7 +13,7 @@ import android.widget.Toolbar;
 import com.example.daniel.myjar.Mp3File;
 
 
-public class MusicInfo extends AppCompatActivity {
+public class MusicInfoActivity extends AppCompatActivity {
     private EditText edtTitle, edtArtist, edtAlbum, edtStyle;
     private String songTitle, songArtist, songAlbum, songStyle,songPath;
     private long songId,songDuration;

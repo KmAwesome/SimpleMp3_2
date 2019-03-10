@@ -1,19 +1,20 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
 import java.util.ArrayList;
 
@@ -23,12 +24,16 @@ public class FolderAdapter extends BaseAdapter {
     private ArrayList<Song> songlist;
     private LayoutInflater inflate_folder;
     private Context context;
+    private InitSongList initSongList;
+    private MusicController musicController;
 
     public FolderAdapter(Context context,ArrayList<String> fileStr,ArrayList<Song> songlist){
         this.context = context;
         inflate_folder = LayoutInflater.from(context);
         this.arrayListFileStr = fileStr;
         this.songlist = songlist;
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController =  ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -107,9 +112,9 @@ public class FolderAdapter extends BaseAdapter {
                 }
             }
         }
-        ((MainActivity)context).setSonglist(mSongs);
-        ((MainActivity)context).setSongPos(0);
-        ((MainActivity)context).playSong();
+        initSongList.setSongList(mSongs);
+        musicController.setSongPos(0);
+        musicController.playSong();
     }
 
 

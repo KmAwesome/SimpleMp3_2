@@ -1,47 +1,51 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
 import com.example.main.simplemp3_2.Fragment.PlayListFragment;
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Model.Song;
+import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
+import com.example.main.simplemp3_2.SongListInFile;
 
 import java.util.ArrayList;
 
-import static com.example.main.simplemp3_2.MainActivity.playList;
-
-public class PlayListAdapter extends BaseAdapter implements View.OnClickListener {
+public class PlayListAdapter extends BaseAdapter {
     private static String TAG = "PlayListAdapter";
     private Context context;
     private LayoutInflater layoutInflater;
     private ArrayList<Song> songlist;
-    private TextView txvPlayList;
+    private ArrayList<String> songTitleList;
+    private TextView txvPlayListTitle;
     private ImageButton imgbtnSetting;
     private PlayListFragment playListFragment;
+    private InitSongList initSongList;
+    private MusicController musicController;
+    private SongListInFile songListInFile;
 
-    public PlayListAdapter(Context context, ArrayList<Song> songlist,PlayListFragment playListFragment) {
+    public PlayListAdapter(Context context, ArrayList<String> songTitleList,PlayListFragment playListFragment) {
         this.context = context;
-        layoutInflater = LayoutInflater.from(context);
-        this.songlist = songlist;
+        this.layoutInflater = LayoutInflater.from(context);
+        this.songTitleList = songTitleList;
         this.playListFragment = playListFragment;
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController =  ((MainActivity)context).getMusicController();
+        songListInFile =  ((MainActivity)context).getSongListInFile();
+        songlist  = initSongList.getSongList();
     }
 
     @Override
     public int getCount() {
-        return playList.size();
+        return songTitleList.size();
     }
 
     @Override
@@ -58,27 +62,27 @@ public class PlayListAdapter extends BaseAdapter implements View.OnClickListener
     public View getView(int i, View view, ViewGroup viewGroup) {
         if (view == null) {
             view = layoutInflater.inflate(R.layout.item_playlist, null);
-            txvPlayList = view.findViewById(R.id.txv_playlist);
+            txvPlayListTitle = view.findViewById(R.id.txv_playlist);
             imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
-            imgbtnSetting.setOnClickListener(this);
+            imgbtnSetting.setOnClickListener(showPopUpMenu);
             imgbtnSetting.setTag(i);
         }
 
-        if (playList != null){
-            txvPlayList.setText(playList.get(i).getTitle());
-        }
+        txvPlayListTitle.setText(songTitleList.get(i));
 
         return view;
     }
 
-    @Override
-    public void onClick(View view) {
-        try {
-            showPopupMenu(view);
-        } catch (Exception e) {
-            e.printStackTrace();
+    View.OnClickListener showPopUpMenu = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            try {
+                showPopupMenu(view);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    }
+    };
 
     private void showPopupMenu(View view){
         final int postion = (int)view.getTag();
@@ -89,12 +93,12 @@ public class PlayListAdapter extends BaseAdapter implements View.OnClickListener
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()){
                     case R.id.playAll:
-                        playAllSongsInPlayList(playList.get(postion).getPlayListSong());
+                        //playAllSongsInPlayList(songListInFile.readSongListInFile(menuItem.get));
                         break;
                     case R.id.deletePlayList:
-                        playList.remove(postion);
-                        playListFragment.writePlayListToFile();
-                        notifyDataSetChanged();
+//                        playList.remove(postion);
+//                        playListFragment.writePlayListToFile();
+//                        notifyDataSetChanged();
                         break;
                 }
                 return true;
@@ -111,9 +115,9 @@ public class PlayListAdapter extends BaseAdapter implements View.OnClickListener
                 playSongs.add(songlist.get(i));
             }
         }
-        ((MainActivity)context).setSonglist(playSongs);
-        ((MainActivity)context).setSongPos(0);
-        ((MainActivity)context).playSong();
+        initSongList.setSongList(songlist);
+        musicController.setSongPos(0);
+        musicController.playSong();
     }
 
 }

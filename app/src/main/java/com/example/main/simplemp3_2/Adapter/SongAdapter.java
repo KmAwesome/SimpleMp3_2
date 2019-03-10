@@ -14,10 +14,12 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Model.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Model.Song;
-import com.example.main.simplemp3_2.MusicInfo;
+import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.MusicInfoActivity;
 import com.example.main.simplemp3_2.R;
 import java.io.File;
 import java.util.ArrayList;
@@ -32,14 +34,16 @@ public class SongAdapter extends BaseAdapter {
     private LayoutInflater songInf;
     private Context context;
     private ArrayList<Song> songlist;
-    private Activity fragmentActivity;
     private int m_position;
+    private InitSongList initSongList;
+    private MusicController musicController;
 
-    public SongAdapter(Context c, ArrayList<Song> songlist, Activity fragmentActivity) {
+    public SongAdapter(Context c, ArrayList<Song> songlist) {
         context = c;
         songInf = LayoutInflater.from(c);
         this.songlist = songlist;
-        this.fragmentActivity = fragmentActivity;
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
     }
 
     private class ViewHolder implements View.OnClickListener {
@@ -127,7 +131,7 @@ public class SongAdapter extends BaseAdapter {
     private void musicInfo(int pos) {
         Song mysong = songlist.get(pos);
         Intent intent = new Intent();
-        intent.setClass(context, MusicInfo.class);
+        intent.setClass(context, MusicInfoActivity.class);
         intent.putExtra("Title", mysong.getTitle());
         intent.putExtra("Artist", mysong.getArtist());
         intent.putExtra("Album", mysong.getAlbum());
@@ -145,7 +149,7 @@ public class SongAdapter extends BaseAdapter {
             Log.i(TAG, "delete: " + musicPath);
             file.delete();
             songlist.remove(i);
-            ((MainActivity) fragmentActivity).setSonglist(songlist);
+            initSongList.setSongList(songlist);
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
             this.notifyDataSetChanged();

@@ -11,7 +11,7 @@
     app:layout_behavior="@string/bottom_sheet_behavior">
 
     <SeekBar
-        android:id="@+id/sb"
+        android:id="@+id/mp3_seekbar"
         android:layout_width="match_parent"
         android:layout_height="5dp"
         android:paddingEnd="0dp"

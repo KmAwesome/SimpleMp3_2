@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2.Model;
+package com.example.main.simplemp3_2;
 
 import java.io.Serializable;
 
