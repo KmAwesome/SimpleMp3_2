@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -39,8 +40,11 @@ public class SongListInFile {
         return songTitleList;
     }
 
-    public void writeTitleListToFile(String listTitle) {
-        songTitleList.add(listTitle);
+    public void writeTitleListToFile(String... listTitle) {
+        for (String title : listTitle){
+            songTitleList.add(title);
+        }
+
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("TitleList.bin",Context.MODE_PRIVATE));
             objectOutputStream.writeObject(songTitleList);
@@ -93,5 +97,16 @@ public class SongListInFile {
             e.printStackTrace();
         }
         return songStringList;
+    }
+
+    public void removeSongListInFile(String songTitle) {
+        try {
+            File file = context.getFileStreamPath(songTitle + ".bin");
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

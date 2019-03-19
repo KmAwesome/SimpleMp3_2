@@ -15,6 +15,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
@@ -23,37 +25,35 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+    private String TAG = "MusicService";
     public static final String PLAY = "PLAY";
     public static final String PAUSE = "PAUSE";
-    public static final String SENDSONG_TEXT = "sendSongText";;
     public final static String REPEAT = "Repeat";
     public final static String REPEATONE = "RepeatOne";
     public final static String SHUFFLE = "Shuffle";
     public final IBinder musicBind = new MusicBinder();
-    private String TAG = "MusicService";
     private MediaPlayer player;
-    private String songTitile = "", songArtist = "", repeatMode = "";
+    private String repeatMode;
     private Random rand;
-    private Intent intentSongText, updateUiIntent;
-    private Song playItemSong;
+    private Intent updateUiIntent;
+    public Song playItemSong;
     private ArrayList<Song> songlist;
     private InitSongList initSongList;
-    public initNotification initNotification;
+    public MusicControlNotification musicControlNotification;
     private int songPosn;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
+            updateUi();
             return MusicService.this;
         }
     }
@@ -82,15 +82,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnErrorListener(this);
-        setSongPos(0);
-        intentSongText = new Intent(SENDSONG_TEXT);
         songlist = new ArrayList<>();
         rand = new Random();
-        initNotification = new initNotification(this, songlist);
+        musicControlNotification = new MusicControlNotification(this);
         initSongList = new InitSongList(this);
         songlist = initSongList.getSongList();
         setRepeatMode(REPEAT);
-        player.reset();
         try {
             playItemSong = songlist.get(songPosn);
             long currSong = playItemSong.getId();
@@ -127,29 +124,33 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
             player.setDataSource(getApplicationContext(), trackUri);
             player.prepareAsync();
-            songTitile = playItemSong.getTitle();
-            songArtist = playItemSong.getArtist();
-            updateUiIntent.setAction(PLAY);
-            sendBroadcast(updateUiIntent);
-            intentSongText.putExtra("songTitle", songTitile);
-            intentSongText.putExtra("songArtist", songArtist);
-            sendBroadcast(intentSongText);
-            initNotification.createNotification();
+            updateUi();
+            musicControlNotification.createNotification();
+            musicControlNotification.updateNotificationUI("Play");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public void updateUi() {
+        updateUiIntent.setAction(PLAY);
+        updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
+        updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
+        sendBroadcast(updateUiIntent);
+    }
+
     public void go() {
         player.start();
+        musicControlNotification.createNotification();
+        musicControlNotification.updateNotificationUI("Play");
     }
 
     public void pausePlayer() {
         player.pause();
-        initNotification.createNotification();
+        musicControlNotification.createNotification();
+        musicControlNotification.updateNotificationUI("Pause");
         updateUiIntent.setAction(PAUSE);
         sendBroadcast(updateUiIntent);
-        sendBroadcast(intentSongText);
     }
 
     public void playPrev() {
@@ -184,8 +185,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return player.isPlaying();
     }
 
-    public void seek(int posn) {
+    public void setPosn(int posn) {
         player.seekTo(posn);
+    }
+
+    public int getPosn() {
+        return player.getCurrentPosition();
+    }
+
+    public int getDur() {
+        if (player.getCurrentPosition() == 0) {
+            return 0;
+        }
+        return player.getDuration();
     }
 
     public void setRepeatMode(String string) {
@@ -215,13 +227,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return songPosn;
     }
 
-    public int getPosn() {
-        return player.getCurrentPosition();
-    }
-
-    public int getDur() {
-        return player.getDuration();
-    }
 
     @Override
     public void onDestroy() {
@@ -229,20 +234,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         stopSelf();
     }
 
-    public class initNotification extends BroadcastReceiver {
-        private String TAG = "mNotification";
+    public class MusicControlNotification extends BroadcastReceiver {
+        private final String TAG = "mNotification";
         public RemoteViews mRemoteViews;
         public NotificationManager mNotificationManager;
-        public Notification mBuilder, notification;
+        public Notification mBuilder;
         private IntentFilter notiticationFilter;
-        private ArrayList<Song> songlist;
         private Context context;
         private NotificationChannel notificationChannel;
         private PendingIntent pendingIntent;
 
-        public initNotification(Context context, ArrayList<Song> songlist) {
+        public MusicControlNotification(Context context) {
             this.context = context.getApplicationContext();
-            this.songlist = songlist;
             notiticationFilter = new IntentFilter();
             notiticationFilter.addAction("closeNotification");
             notiticationFilter.addAction("playNotification");
@@ -252,7 +255,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
             mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.notification_mp3_control);
             mRemoteViews.setImageViewResource(R.id.viewLogo, R.drawable.logo);
-            mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.notepause);
+            mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.noteplay);
+            mRemoteViews.setImageViewResource(R.id.noteNext, R.drawable.notenext);
+            mRemoteViews.setImageViewResource(R.id.notePrev, R.drawable.noteprev);
+            mRemoteViews.setImageViewResource(R.id.noteClose, R.drawable.noteclose);
+
             mNotificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 
             Intent intent = new Intent(context, MainActivity.class);
@@ -281,11 +288,31 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             context.registerReceiver(this, notiticationFilter);
         }
 
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("closeNotification")) {
+                pausePlayer();
+                stopForeground(true);
+                mBuilder = null;
+                return;
+            } else if (intent.getAction().equals("playNotification")) {
+                if (isPlaying()) {
+                    pausePlayer();
+                }else {
+                    go();
+                }
+            } else if (intent.getAction().equals("nextNotification")) {
+                playNext();
+            } else if (intent.getAction().equals("prevNotification")) {
+                playPrev();
+            }
+        }
+
         public void createNotification() {
             if (mBuilder == null) {
                 Log.i(TAG, "createNotification: ");
-                String CHANNEL_ID = "Channel01";
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    String CHANNEL_ID = "Channel01";
                     if (notificationChannel == null) {
                         notificationChannel = new NotificationChannel(CHANNEL_ID, "Channel_1", NotificationManager.IMPORTANCE_LOW);
                         notificationChannel.setSound(null, null);
@@ -310,40 +337,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 mBuilder.flags = Notification.FLAG_NO_CLEAR;
                 startForeground(1, mBuilder);
             }
-            setmRemoteViews();
         }
 
-        public void setNotificationSonglist(ArrayList<Song> songlist) {
-            this.songlist = songlist;
-        }
-
-        public void setmRemoteViews() {
-            if (mBuilder != null) {
-                mNotificationManager.notify(1, mBuilder);
+        public void updateNotificationUI(String tag) {
+            Log.i(TAG, "updateNotificationUI: !!!!" + tag);
+            if (tag.equals("Play")) {
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.notepause);
+            }else if (tag.equals("Pause")) {
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.play);
             }
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals("closeNotification")) {
-                Log.i(TAG, "closeNotification");
-                pausePlayer();
-                stopForeground(true);
-                mBuilder = null;
-                return;
-            } else if (intent.getAction().equals("playNotification")) {
-                Log.i(TAG, "playNotification");
-                if (isPlaying())
-                    pausePlayer();
-                else go();
-            } else if (intent.getAction().equals("nextNotification")) {
-                Log.i(TAG, "nextNotification");
-                playNext();
-            } else if (intent.getAction().equals("prevNotification")) {
-                Log.i(TAG, "prevNotification");
-                playPrev();
-            }
-            setmRemoteViews();
+            mRemoteViews.setTextViewText(R.id.noteTitle, playItemSong.getTitle());
+            mRemoteViews.setTextViewText(R.id.noteArtist, playItemSong.getArtist());
+            mNotificationManager.notify(1, mBuilder);
         }
     }
 

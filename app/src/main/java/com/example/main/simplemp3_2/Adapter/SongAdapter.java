@@ -46,6 +46,21 @@ public class SongAdapter extends BaseAdapter {
         musicController = ((MainActivity)context).getMusicController();
     }
 
+    @Override
+    public int getCount() {
+        return songlist.size();
+    }
+
+    @Override
+    public Object getItem(int i) {
+        return null;
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return 0;
+    }
+
     private class ViewHolder implements View.OnClickListener {
         public ImageButton songSetting;
         public TextView songView, artistView, durationView;
@@ -74,6 +89,7 @@ public class SongAdapter extends BaseAdapter {
                             break;
                         case R.id.addToList:
                             SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
+                            selectPlayListFragmentDialog.addSongToFile(songlist.get(m_position).getTitle());
                             selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
                             break;
                         case R.id.delete:
@@ -86,6 +102,7 @@ public class SongAdapter extends BaseAdapter {
             popupMenu.show();
         }
     }
+
 
     @Override
     public View getView(final int position, View converView, ViewGroup parent) {
@@ -101,7 +118,6 @@ public class SongAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) converView.getTag();
         }
-
         holder.songSetting.setTag(position);
         Song currItemSong = songlist.get(position);
         holder.songView.setText(currItemSong.getTitle());
@@ -111,21 +127,6 @@ public class SongAdapter extends BaseAdapter {
         );
         holder.durationView.setText(sDuration);
         return converView;
-    }
-
-    @Override
-    public int getCount() {
-        return songlist.size();
-    }
-
-    @Override
-    public Object getItem(int i) {
-        return null;
-    }
-
-    @Override
-    public long getItemId(int i) {
-        return 0;
     }
 
     private void musicInfo(int pos) {

@@ -14,7 +14,8 @@
             android:id="@+id/relativLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="55dp"></RelativeLayout>
+            android:layout_marginBottom="55dp">
+        </RelativeLayout>
 
         <include layout="@layout/bottom_sheet_behavior"/>
 

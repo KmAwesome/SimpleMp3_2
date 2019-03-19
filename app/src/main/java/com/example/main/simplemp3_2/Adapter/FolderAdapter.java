@@ -112,10 +112,10 @@ public class FolderAdapter extends BaseAdapter {
                 }
             }
         }
-        initSongList.setSongList(mSongs);
-        musicController.setSongPos(0);
-        musicController.playSong();
+        if (mSongs.size() > 0) {
+            initSongList.setSongList(mSongs);
+            musicController.setSongPos(0);
+            musicController.playSong();
+        }
     }
-
-
 }

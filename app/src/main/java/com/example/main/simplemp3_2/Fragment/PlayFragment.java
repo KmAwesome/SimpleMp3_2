@@ -32,20 +32,15 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        initSongList = ((MainActivity)context).getInitSongList();
-        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        songlist = new ArrayList<>();
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
         songlist = initSongList.getSongList();
         songAdt = new SongAdapter(context, songlist);
-        if (songlist.size() > 0){
-            ((MainActivity) getActivity()).txv_showTitle.setText(songlist.get(0).getTitle());
-            ((MainActivity) getActivity()).txv_showArtist.setText(songlist.get(0).getArtist());
-        }
     }
 
     @Override

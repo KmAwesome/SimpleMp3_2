@@ -103,23 +103,7 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
                 folderSonglist.add(songlist.get(i));
             }
         }
-        musicController.setSongList(folderSonglist);
         return folderSonglist;
     }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser && songlist != null) {
-            Log.i(TAG, "setUserVisibleHint: true");
-            getFolderName();
-            folderAdapter.notifyDataSetChanged();
-        } else {
-            Log.i(TAG, "setUserVisibleHint: false");
-        }
-    }
-
-
-
 
 }

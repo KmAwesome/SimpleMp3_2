@@ -86,7 +86,6 @@ public class ArtistAdapter extends BaseAdapter{
         viewholder.songSetting.setTag(position);
         viewholder.artistView.setText(artistList.get(position));
         viewholder.songCountView.setText("曲目 " + getSongCounter(artistList.get(position)));
-        
         return converView;
     }
 
@@ -132,9 +131,11 @@ public class ArtistAdapter extends BaseAdapter{
                 mSongs.add(songlist.get(i));
             }
         }
-        initSongList.setSongList(mSongs);
-        musicController.setSongPos(0);
-        musicController.playSong();
+        if (mSongs.size() > 0) {
+            musicController.setSongList(mSongs);
+            musicController.setSongPos(0);
+            musicController.playSong();
+        }
     }
 
     private ArrayList<String> getArtistSongs(String artist){

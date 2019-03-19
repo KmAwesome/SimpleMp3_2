@@ -12,10 +12,10 @@ import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 public class InitSongList {
+    private final String TAG = "InitSongList";
+    private Context context;
     private ArrayList<Song> songlist;
     private ArrayList<Song> allSongList;
-    private Context context;
-    private String TAG = "InitSongList";
     private MusicController musicController;
 
     public InitSongList(Context context) {

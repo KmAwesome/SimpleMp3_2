@@ -51,7 +51,6 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i(TAG, "onCreateView: ");
         View view = inflater.inflate(R.layout.m_listview,container,false);
         listView = view.findViewById(R.id.song_list);
         listView.setOnItemClickListener(this);
@@ -96,7 +95,6 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
                 artistSonglist.add(songlist.get(i));
             }
         }
-        musicController.setSongList(artistSonglist);
         return artistSonglist;
     }
 

@@ -41,5 +41,9 @@ public class SelectPlayListFragmentDialog extends DialogFragment{
         this.songStringList = songStringList;
     }
 
+    public void addSongToFile(String songTitle) {
+        this.songStringList.add(songTitle);
+    }
+
 
 }

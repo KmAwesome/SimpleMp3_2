@@ -93,12 +93,14 @@ public class PlayListAdapter extends BaseAdapter {
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()){
                     case R.id.playAll:
-                        //playAllSongsInPlayList(songListInFile.readSongListInFile(menuItem.get));
+                        playAllSongsInPlayList(postion);
                         break;
                     case R.id.deletePlayList:
-//                        playList.remove(postion);
-//                        playListFragment.writePlayListToFile();
-//                        notifyDataSetChanged();
+                        songListInFile.removeSongListInFile(songTitleList.get(postion));
+                        songTitleList.remove(postion);
+                        String[] songTitles = songTitleList.toArray(new String[songTitleList.size()]);
+                        songListInFile.writeTitleListToFile(songTitles);
+                        notifyDataSetChanged();
                         break;
                 }
                 return true;
@@ -107,17 +109,13 @@ public class PlayListAdapter extends BaseAdapter {
         popupMenu.show();
     }
 
-    private void playAllSongsInPlayList(ArrayList<String> songTitleList) {
-        ArrayList<Song> playSongs;
-        playSongs = new ArrayList<>();
-        for (int i=0; i<songlist.size(); i++) {
-            if (songTitleList.contains(songlist.get(i).getTitle())){
-                playSongs.add(songlist.get(i));
-            }
+    private void playAllSongsInPlayList(int postion) {
+        songlist = songListInFile.getSongListInFile(songTitleList.get(postion));
+        if (songlist.size() > 0) {
+            initSongList.setSongList(songlist);
+            musicController.setSongPos(0);
+            musicController.playSong();
         }
-        initSongList.setSongList(songlist);
-        musicController.setSongPos(0);
-        musicController.playSong();
     }
 
 }
