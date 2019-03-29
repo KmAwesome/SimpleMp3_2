@@ -1,7 +1,9 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -36,14 +38,12 @@ public class SongAdapter extends BaseAdapter {
     private ArrayList<Song> songlist;
     private int m_position;
     private InitSongList initSongList;
-    private MusicController musicController;
 
     public SongAdapter(Context c, ArrayList<Song> songlist) {
         context = c;
         songInf = LayoutInflater.from(c);
         this.songlist = songlist;
         initSongList = ((MainActivity)context).getInitSongList();
-        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -93,7 +93,21 @@ public class SongAdapter extends BaseAdapter {
                             selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
                             break;
                         case R.id.delete:
-                            delete(songlist.get(m_position).getPath(), m_position);
+                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+                            alertDialog.setTitle("確定刪除此歌曲?");
+                            alertDialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    deleteSong(songlist.get(m_position).getPath(), m_position);
+                                }
+                            });
+                            alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            alertDialog.show();
                             break;
                     }
                     return true;
@@ -144,7 +158,7 @@ public class SongAdapter extends BaseAdapter {
         context.startActivity(intent);
     }
 
-    private void delete(String musicPath, int i) {
+    private void deleteSong(String musicPath, int i) {
         File file = new File(musicPath);
         if (file.exists()) {
             Log.i(TAG, "delete: " + musicPath);

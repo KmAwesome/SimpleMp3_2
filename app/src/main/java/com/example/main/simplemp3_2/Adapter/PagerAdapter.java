@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.ViewGroup;
 
+import com.example.main.simplemp3_2.Fragment.AlbumFragment;
 import com.example.main.simplemp3_2.Fragment.ArtistFragment;
 import com.example.main.simplemp3_2.Fragment.FolderFragment;
 import com.example.main.simplemp3_2.Fragment.PlayFragment;
@@ -33,9 +34,12 @@ public class PagerAdapter extends FragmentPagerAdapter {
                 ArtistFragment artistFragment = new ArtistFragment();
                 return artistFragment;
             case 2:
+                AlbumFragment albumFragment = new AlbumFragment();
+                return albumFragment;
+            case 3:
                 FolderFragment folderFragment = new FolderFragment();
                 return folderFragment;
-            case 3:
+            case 4:
                 PlayListFragment playListFragment = new PlayListFragment();
                 return playListFragment;
             default:
@@ -51,8 +55,10 @@ public class PagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return "演出者";
             case 2:
-                return "資料夾";
+                return "專輯";
             case 3:
+                return "資料夾";
+            case 4:
                 return "播放列表";
             default:
                 return null;

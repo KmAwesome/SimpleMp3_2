@@ -1,6 +1,7 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,26 +22,18 @@ import java.util.ArrayList;
 
 public class PlayListAdapter extends BaseAdapter {
     private static String TAG = "PlayListAdapter";
+    private MusicController musicController;
+    private SongListInFile songListInFile;
     private Context context;
-    private LayoutInflater layoutInflater;
-    private ArrayList<Song> songlist;
     private ArrayList<String> songTitleList;
     private TextView txvPlayListTitle;
     private ImageButton imgbtnSetting;
-    private PlayListFragment playListFragment;
-    private InitSongList initSongList;
-    private MusicController musicController;
-    private SongListInFile songListInFile;
 
-    public PlayListAdapter(Context context, ArrayList<String> songTitleList,PlayListFragment playListFragment) {
+    public PlayListAdapter(Context context, ArrayList<String> songTitleList) {
         this.context = context;
-        this.layoutInflater = LayoutInflater.from(context);
         this.songTitleList = songTitleList;
-        this.playListFragment = playListFragment;
-        initSongList = ((MainActivity)context).getInitSongList();
         musicController =  ((MainActivity)context).getMusicController();
         songListInFile =  ((MainActivity)context).getSongListInFile();
-        songlist  = initSongList.getSongList();
     }
 
     @Override
@@ -60,33 +53,25 @@ public class PlayListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        if (view == null) {
-            view = layoutInflater.inflate(R.layout.item_playlist, null);
-            txvPlayListTitle = view.findViewById(R.id.txv_playlist);
-            imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
-            imgbtnSetting.setOnClickListener(showPopUpMenu);
-            imgbtnSetting.setTag(i);
-        }
-
+        view = LayoutInflater.from(context).inflate(R.layout.item_playlist, null);
+        txvPlayListTitle = view.findViewById(R.id.txv_playlist);
+        imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
+        imgbtnSetting.setOnClickListener(showPopUpMenu);
+        imgbtnSetting.setTag(i);
         txvPlayListTitle.setText(songTitleList.get(i));
-
         return view;
     }
 
     View.OnClickListener showPopUpMenu = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            try {
-                showPopupMenu(view);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            showPopupMenu(view);
         }
     };
 
     private void showPopupMenu(View view){
         final int postion = (int)view.getTag();
-        PopupMenu popupMenu = new PopupMenu(context,view);
+        PopupMenu popupMenu = new PopupMenu(context, view);
         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_playlist,popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
@@ -98,8 +83,7 @@ public class PlayListAdapter extends BaseAdapter {
                     case R.id.deletePlayList:
                         songListInFile.removeSongListInFile(songTitleList.get(postion));
                         songTitleList.remove(postion);
-                        String[] songTitles = songTitleList.toArray(new String[songTitleList.size()]);
-                        songListInFile.writeTitleListToFile(songTitles);
+                        songListInFile.writeTitleListToFile(songTitleList);
                         notifyDataSetChanged();
                         break;
                 }
@@ -110,9 +94,9 @@ public class PlayListAdapter extends BaseAdapter {
     }
 
     private void playAllSongsInPlayList(int postion) {
-        songlist = songListInFile.getSongListInFile(songTitleList.get(postion));
+        ArrayList<Song> songlist = songListInFile.getSongListInFile(songTitleList.get(postion));
         if (songlist.size() > 0) {
-            initSongList.setSongList(songlist);
+            musicController.setSongList(songlist);
             musicController.setSongPos(0);
             musicController.playSong();
         }

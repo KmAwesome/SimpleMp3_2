@@ -15,7 +15,6 @@ public class InitSongList {
     private final String TAG = "InitSongList";
     private Context context;
     private ArrayList<Song> songlist;
-    private ArrayList<Song> allSongList;
     private MusicController musicController;
 
     public InitSongList(Context context) {
@@ -37,7 +36,6 @@ public class InitSongList {
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
-
             do {
                 try{
                     String thispath = musicCursor.getString(musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
@@ -76,13 +74,8 @@ public class InitSongList {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
-
-        allSongList = songlist;
     }
 
-    public ArrayList<Song> getAllSongList() {
-        return allSongList;
-    }
 
     public void setSongList(ArrayList<Song> songs) {
         songlist = songs;

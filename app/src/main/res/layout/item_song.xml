@@ -15,7 +15,7 @@
         android:layout_width="60dp"
         android:layout_height="match_parent"
         android:padding="10dp"
-        android:src="@drawable/mp3" />
+        android:src="@drawable/view_mp3_icon" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:textColor="@color/colorTitle"
+            android:textColor="@color/colorTextTitle"
             android:textSize="18sp" />
 
         <TextView
@@ -59,7 +59,7 @@
             android:layout_height="match_parent"
             android:background="#00000000"
             android:focusable="false"
-            android:src="@drawable/set"
+            android:src="@drawable/btn_set"
             android:clickable="true"/>
     </LinearLayout>
 

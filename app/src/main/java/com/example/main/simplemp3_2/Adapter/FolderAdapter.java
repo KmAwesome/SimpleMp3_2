@@ -9,8 +9,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
-import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
@@ -20,24 +18,22 @@ import java.util.ArrayList;
 
 public class FolderAdapter extends BaseAdapter {
     private static String TAG = "FolderAdapter";
-    private ArrayList<String> arrayListFileStr;
+    private ArrayList<String> folderNameList;
     private ArrayList<Song> songlist;
     private LayoutInflater inflate_folder;
     private Context context;
-    private InitSongList initSongList;
     private MusicController musicController;
 
     public FolderAdapter(Context context,ArrayList<String> fileStr,ArrayList<Song> songlist){
         this.context = context;
         inflate_folder = LayoutInflater.from(context);
-        this.arrayListFileStr = fileStr;
+        this.folderNameList = fileStr;
         this.songlist = songlist;
-        initSongList = ((MainActivity)context).getInitSongList();
         musicController =  ((MainActivity)context).getMusicController();
     }
 
     @Override
-    public int getCount() { return arrayListFileStr.size(); }
+    public int getCount() { return folderNameList.size(); }
 
     @Override
     public Object getItem(int i) {
@@ -75,7 +71,7 @@ public class FolderAdapter extends BaseAdapter {
         }else {
             viewHolder = (ViewHolder) converView.getTag();
         }
-        viewHolder.txv_folderName.setText(arrayListFileStr.get(position));
+        viewHolder.txv_folderName.setText(folderNameList.get(position));
 
         return converView;
     }
@@ -89,10 +85,11 @@ public class FolderAdapter extends BaseAdapter {
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch (menuItem.getItemId()){
                     case R.id.playAll:
-                        playAll(arrayListFileStr.get(postion));
+                        playAll(folderNameList.get(postion));
                         break;
                     case R.id.addToList:
                         SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
+                        selectPlayListFragmentDialog.addListToFile(getSongsInFolder(folderNameList.get(postion)));
                         selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
                         break;
                 }
@@ -102,9 +99,18 @@ public class FolderAdapter extends BaseAdapter {
         popupMenu.show();
     }
 
+    private ArrayList<String> getSongsInFolder(String folderName) {
+        ArrayList<String> songTitleList = new ArrayList<>();
+        for (int i=0; i<songlist.size(); i++){
+            if (songlist.get(i).getPath().contains(folderName)){
+                songTitleList.add(songlist.get(i).getTitle());
+            }
+        }
+        return songTitleList;
+    }
+
     private void playAll(String folderName){
-        ArrayList<Song> mSongs;
-        mSongs = new ArrayList<>();
+        ArrayList<Song> mSongs = new ArrayList<>();
         if (songlist != null){
             for (int i=0; i<songlist.size(); i++){
                 if (songlist.get(i).getPath().contains(folderName)){
@@ -113,7 +119,7 @@ public class FolderAdapter extends BaseAdapter {
             }
         }
         if (mSongs.size() > 0) {
-            initSongList.setSongList(mSongs);
+            musicController.setSongList(mSongs);
             musicController.setSongPos(0);
             musicController.playSong();
         }

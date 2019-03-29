@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -23,12 +20,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
 
-import java.util.ArrayList;
-
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static com.example.main.simplemp3_2.Service.MusicService.PAUSE;
 import static com.example.main.simplemp3_2.Service.MusicService.PLAY;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,17 +35,19 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private InitSongList initSongList;
     private SongListInFile songListInFile;
-    private Handler musicPlayHandler = new Handler();
     public SeekBar mp3SeekBar;
     public MusicController musicController;
     public TextView txv_showTitle,txv_showArtist;
     public ImageButton imgbtn_playSong, imgbtn_playNext,imgbtn_repeat, imgbtn_playPrev;
+    private IntentFilter updateUIfilter;
+    private PagerAdapter pagerAdapter;
+    private boolean permissionGranted;
 
     BroadcastReceiver updateUI = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PAUSE)) {
-                imgbtn_playSong.setImageResource(R.drawable.play);
+                imgbtn_playSong.setImageResource(R.drawable.btn_play);
             }else if (intent.getAction().equals(PLAY)) {
                 txv_showTitle.setText(intent.getStringExtra("songTitle"));
                 txv_showArtist.setText(intent.getStringExtra("songArtist"));
@@ -63,9 +59,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        musicController = new MusicController(this);
-        initSongList = new InitSongList(this);
-        songListInFile = new SongListInFile(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestPermission(PERMISSIONS);
@@ -77,6 +70,10 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, permissions, PERMISSION_ALL);
             } else {
                 Log.i(TAG, "PERMISSION_GRANTED");
+                permissionGranted = true;
+                musicController = new MusicController(this);
+                initSongList = new InitSongList(this);
+                songListInFile = new SongListInFile(this);
                 initTabLayout();
                 initView();
                 initUpdateUiReceiver();
@@ -89,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.i(TAG, "PERMISSION_GRANTED");
+            musicController = new MusicController(this);
+            initSongList = new InitSongList(this);
+            songListInFile = new SongListInFile(this);
             initTabLayout();
             initView();
             initUpdateUiReceiver();
@@ -105,12 +105,16 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = findViewById(R.id.tablayout);
         viewPager = findViewById(R.id.viewpager);
 
+        tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.colorAccent));
+        tabLayout.setTabTextColors(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorAccent) );
+
+        tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
 
-        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(),tabLayout.getTabCount());
+        pagerAdapter = new PagerAdapter(getSupportFragmentManager(),tabLayout.getTabCount());
         viewPager.setAdapter(pagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
     }
@@ -131,14 +135,13 @@ public class MainActivity extends AppCompatActivity {
 
         txv_showTitle.setSelected(true);
         imgbtn_repeat.setTag(REPEATONE);
-
     }
 
     private void initUpdateUiReceiver() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(PLAY);
-        intentFilter.addAction(PAUSE);
-        registerReceiver(updateUI, intentFilter);
+        updateUIfilter = new IntentFilter();
+        updateUIfilter.addAction(PLAY);
+        updateUIfilter.addAction(PAUSE);
+        registerReceiver(updateUI, updateUIfilter);
     }
 
     SeekBar.OnSeekBarChangeListener mp3SeekBarChangeLIstener = new SeekBar.OnSeekBarChangeListener() {
@@ -155,22 +158,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             musicController.setSongPlayingPos(seekBar.getProgress());
-        }
-    };
-
-    public void startSeekBar() {
-        musicPlayHandler.post(mp3Start);
-    }
-
-    private Runnable mp3Start = new Runnable() {
-        @Override
-        public void run() {
-            if (musicController.isPlaying()) {
-                mp3SeekBar.setMax(musicController.getSongDuration());
-                mp3SeekBar.setProgress(musicController.getSongPlayingPos());
-                imgbtn_playSong.setImageResource(R.drawable.notepause);
-            }
-            musicPlayHandler.postDelayed(mp3Start,50);
         }
     };
 
@@ -199,8 +186,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.i(TAG, "onDestroy: ");
         super.onDestroy();
-        unregisterReceiver(updateUI);
-        musicPlayHandler.removeCallbacks(mp3Start);
+        if (updateUIfilter != null) {
+            unregisterReceiver(updateUI);
+        }
+        if (musicController != null) {
+            musicController.removeHandlerCallback();
+            musicController.unbindMusicService();
+        }
+
     }
 
 }

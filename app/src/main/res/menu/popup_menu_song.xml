@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/musicInfo"
-        android:title="詳細資訊" />
+        android:title="編輯標籤" />
     <item
         android:id="@+id/delete"
         android:title="從本機移除" />

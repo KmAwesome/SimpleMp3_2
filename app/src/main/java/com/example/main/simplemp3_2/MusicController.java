@@ -6,12 +6,10 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.util.Log;
 import android.view.View;
-import android.widget.SeekBar;
+
 import com.example.main.simplemp3_2.Service.MusicService;
-import java.io.Serializable;
+
 import java.util.ArrayList;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
@@ -20,15 +18,37 @@ import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
 public class MusicController implements View.OnClickListener {
     private final String TAG = "MusicController";
     private Context context;
+    public Handler musicPlayHandler = new Handler();
     private MusicService musicService;
     private MainActivity mainActivity;
-    public BindMusicService bindMusicService;
+    private boolean isBind;
 
     public MusicController(Context context) {
         this.context = context;
         this.mainActivity = (MainActivity)context;
-        bindMusicService = new BindMusicService();
+        bindMusicService();
     }
+
+    public void bindMusicService() {
+        Intent intent = new Intent(context, MusicService.class);
+        context.bindService(intent, musicServiceConnection, context.BIND_AUTO_CREATE);
+        context.startService(intent);
+    }
+
+    ServiceConnection musicServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            MusicService.MusicBinder musicBinder = (MusicService.MusicBinder) iBinder;
+            musicService = musicBinder.getService();
+            musicPlayHandler.post(mp3Start);
+            isBind = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };
 
     @Override
     public void onClick(View view) {
@@ -51,40 +71,63 @@ public class MusicController implements View.OnClickListener {
         }
     }
 
-    public void playSong(){
-        musicService.playSong();
-        mainActivity.startSeekBar();
-    }
+    private Runnable mp3Start = new Runnable() {
+        @Override
+        public void run() {
+            if (isPlaying()) {
+                mainActivity.mp3SeekBar.setMax(getSongDuration());
+                mainActivity.mp3SeekBar.setProgress(getSongPlayingPos());
+                mainActivity.imgbtn_playSong.setImageResource(R.drawable.btn_pause);
+            }
+            musicPlayHandler.postDelayed(mp3Start,50);
+            updateRepeatImgButtonView();
+        }
+    };
 
-    public void playPrev(){
-        musicService.playPrev();
-        mainActivity.startSeekBar();
-    }
-
-    public void playNext(){
-        musicService.playNext();
-        mainActivity.startSeekBar();
+    private void updateRepeatImgButtonView() {
+        if (musicService.getRepeatMode().equals(REPEAT)) {
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_all);
+        }else if (musicService.getRepeatMode().equals(REPEATONE)) {
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_one);
+        }else if (musicService.getRepeatMode().equals(SHUFFLE)) {
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_shffle);
+        }
     }
 
     public void setRepeatMode(View view) {
         if (view.getTag().equals(REPEAT)) {
             musicService.setRepeatMode(REPEAT);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.repeat);
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_all);
             view.setTag(REPEATONE);
         }else if (view.getTag().equals(REPEATONE)) {
             musicService.setRepeatMode(REPEATONE);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.repeat_one);
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_one);
             view.setTag(SHUFFLE);
         }else if (view.getTag().equals(SHUFFLE)) {
             musicService.setRepeatMode(SHUFFLE);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.shffle);
+            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_shffle);
             view.setTag(REPEAT);
         }
     }
 
+    public void playSong(){
+        musicService.playSong();
+        musicPlayHandler.post(mp3Start);
+    }
+
+    public void playPrev(){
+        musicService.playPrev();
+        musicPlayHandler.post(mp3Start);
+    }
+
+    public void playNext(){
+        musicService.playNext();
+        musicPlayHandler.post(mp3Start);
+    }
+
     public void goSong(){
         musicService.go();
-        mainActivity.startSeekBar();
+        musicPlayHandler.post(mp3Start);
     }
 
     public void pauseSong(){
@@ -119,26 +162,16 @@ public class MusicController implements View.OnClickListener {
         return musicService.getDur();
     }
 
-    class BindMusicService implements ServiceConnection {
-
-        public BindMusicService() {
-            Intent intent = new Intent(context, MusicService.class);
-            context.bindService(intent, this, Context.BIND_AUTO_CREATE);
-            context.startService(intent);
+    public void removeHandlerCallback() {
+        if (musicPlayHandler != null) {
+            musicPlayHandler.removeCallbacks(mp3Start);
         }
+    }
 
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MusicService.MusicBinder musicBinder = (MusicService.MusicBinder) iBinder;
-            musicService = musicBinder.getService();
-            mainActivity.startSeekBar();
+    public void unbindMusicService() {
+        if (isBind) {
+            context.unbindService(musicServiceConnection);
         }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            musicService = null;
-        }
-
     }
 
 }

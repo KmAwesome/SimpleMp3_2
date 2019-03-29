@@ -15,7 +15,7 @@
         android:layout_width="60dp"
         android:layout_height="match_parent"
         android:padding="6dp"
-        android:src="@drawable/folder" />
+        android:src="@drawable/view_folder" />
 
         <TextView
             android:id="@+id/txv_folderName"
@@ -24,7 +24,7 @@
             android:layout_weight="1"
             android:gravity="center|left"
             android:singleLine="true"
-            android:textColor="@color/colorTitle"
+            android:textColor="@color/colorTextTitle"
             android:textSize="18sp" />
 
     <ImageButton
@@ -34,7 +34,7 @@
         android:background="#00000000"
         android:clickable="true"
         android:focusable="false"
-        android:src="@drawable/set" />
+        android:src="@drawable/btn_set" />
 
     </LinearLayout>
 

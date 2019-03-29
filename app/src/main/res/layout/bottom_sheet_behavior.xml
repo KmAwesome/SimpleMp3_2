@@ -3,11 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bottom_sheet_musicContorl"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/colorBackground"
+    android:layout_height="55dp"
     android:orientation="vertical"
     app:behavior_hideable="false"
-    app:behavior_peekHeight="55dp"
     app:layout_behavior="@string/bottom_sheet_behavior">
 
     <SeekBar
@@ -15,8 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="5dp"
         android:paddingEnd="0dp"
-        android:paddingStart="0dp"
-        android:progressBackgroundTint="@color/colorNoticicaionBG" />
+        android:paddingStart="0dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,7 +26,7 @@
             android:layout_width="55dp"
             android:layout_height="match_parent"
             android:padding="10dp"
-            android:src="@drawable/mp3" />
+            android:src="@drawable/view_mp3_icon" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -66,21 +63,21 @@
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            app:srcCompat="@drawable/repeat" />
+            app:srcCompat="@drawable/btn_repeat_all" />
 
         <ImageButton
             android:id="@+id/imgbtn_play"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            android:src="@drawable/play" />
+            android:src="@drawable/btn_play" />
 
         <ImageButton
             android:id="@+id/imgbtn_next"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            android:src="@drawable/playnext" />
+            android:src="@drawable/btn_play_next" />
     </LinearLayout>
 
 

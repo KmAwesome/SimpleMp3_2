@@ -24,27 +24,16 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
     private ListView listView;
     private Context context;
     private ArtistAdapter artistAdapter;
-    private Bundle bundle;
     private SongFragment songFragment;
     private InitSongList initSongList;
-    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        initSongList = ((MainActivity)context).getInitSongList();
-        musicController = ((MainActivity)context).getMusicController();
-        bundle = new Bundle();
+        initSongList = new InitSongList(context);
         artistList = new ArrayList<>();
         songlist = new ArrayList<>();
-        songlist = initSongList.getSongList();
-        artistAdapter = new ArtistAdapter(context,getAristList(),songlist);
         songFragment = new SongFragment();
     }
 
@@ -54,12 +43,21 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
         View view = inflater.inflate(R.layout.m_listview,container,false);
         listView = view.findViewById(R.id.song_list);
         listView.setOnItemClickListener(this);
-        listView.setAdapter(artistAdapter);
         return view;
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        initSongList.initSongList();
+        songlist = initSongList.getSongList();
+        artistAdapter = new ArtistAdapter(context,getAristList(),songlist);
+        listView.setAdapter(artistAdapter);
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        Bundle bundle = new Bundle();
         bundle.putSerializable("playSongList", getSongInArtistlist(i));
         songFragment.setArguments(bundle);
         getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
@@ -68,15 +66,12 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
     public ArrayList<String> getAristList() {
         String[] stringArtist;
         stringArtist = new String[songlist.size()];
-
         if (artistList.size() > 0) {
             artistList.clear();
         }
-
         for(int i = 0; i< songlist.size(); i++){
             stringArtist[i] = songlist.get(i).getArtist();
         }
-
         for (String name : stringArtist){
             for (int i=0; i<stringArtist.length; i++){
                 if (!artistList.contains(name)){

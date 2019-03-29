@@ -24,33 +24,20 @@ import java.util.ArrayList;
 
 public class FolderFragment extends Fragment implements AdapterView.OnItemClickListener {
     private String TAG = "FolderFragment",folderName;
+    private Context context;
+    private InitSongList initSongList;
     private ListView listView;
     public FolderAdapter folderAdapter;
-    private Context context;
     private ArrayList<File> fileArrayList;
-    private ArrayList<Song> songlist,folderSonglist;
-    private Bundle bundle;
-    private SongFragment songFragment;
-    private InitSongList initSongList;
-    private MusicController musicController;
+    private ArrayList<Song> songlist;
+
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        initSongList = ((MainActivity) context).getInitSongList();
-        musicController = ((MainActivity)context).getMusicController();
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        bundle = new Bundle();
-        songlist = new ArrayList<>();
-        folderSonglist = new ArrayList<>();
+        initSongList = new InitSongList(context);
         songlist = initSongList.getSongList();
-        folderAdapter = new FolderAdapter(context,getFolderName(),songlist);
-        songFragment = new SongFragment();
     }
 
     @Nullable
@@ -58,15 +45,25 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.m_listview,container,false);
         listView = view.findViewById(R.id.song_list);
-        listView.setAdapter(folderAdapter);
         listView.setOnItemClickListener(this);
         return view;
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        initSongList.initSongList();
+        initSongList.getSongList();
+        folderAdapter = new FolderAdapter(context, getFolderName(), songlist);
+        listView.setAdapter(folderAdapter);
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         folderName = ((TextView)view.findViewById(R.id.txv_folderName)).getText().toString();
-        bundle.putSerializable("playSongList",getSongsInFolder());;
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("playSongList", getSongsInFolder());;
+        SongFragment songFragment = new SongFragment();
         songFragment.setArguments(bundle);
         getFragmentManager().beginTransaction().replace(R.id.relativLayout,songFragment).addToBackStack(null).commit();
     }
@@ -93,11 +90,10 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
     }
     
     public ArrayList<Song> getSongsInFolder(){
-
+        ArrayList<Song> folderSonglist = new ArrayList<>();
         if (folderSonglist != null){
             folderSonglist.clear();
         }
-
         for (int i=0; i<fileArrayList.size(); i++){
             if (fileArrayList.get(i).getParentFile().getName().contains(folderName)){
                 folderSonglist.add(songlist.get(i));

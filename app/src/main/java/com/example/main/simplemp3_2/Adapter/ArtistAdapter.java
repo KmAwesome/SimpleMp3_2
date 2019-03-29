@@ -9,14 +9,11 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
-import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song;
-
 import java.util.ArrayList;
 
 public class ArtistAdapter extends BaseAdapter{
@@ -25,7 +22,6 @@ public class ArtistAdapter extends BaseAdapter{
     private LayoutInflater layoutInflater;
     private ArrayList<Song> songlist;
     private Context context;
-    private InitSongList initSongList;
     private MusicController musicController;
 
     public ArtistAdapter(Context c, ArrayList<String> artistList,ArrayList<Song> songlist){
@@ -33,7 +29,6 @@ public class ArtistAdapter extends BaseAdapter{
         layoutInflater = LayoutInflater.from(c);
         this.artistList = artistList;
         this.songlist = songlist;
-        initSongList = ((MainActivity)context).getInitSongList();
         musicController =  ((MainActivity)context).getMusicController();
     }
 
@@ -70,6 +65,39 @@ public class ArtistAdapter extends BaseAdapter{
         }
     }
 
+    private void showPopupMenu(View view){
+        final int postion = (int)view.getTag();
+        PopupMenu popupMenu = new PopupMenu(context,view);
+        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_artist,popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                switch (menuItem.getItemId()){
+                    case R.id.playAll:
+                        playAll(artistList.get(postion));
+                        break;
+                    case R.id.addToList:
+                        SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
+                        selectPlayListFragmentDialog.addListToFile(getArtistSongs(artistList.get(postion)));
+                        selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
+                        break;
+                }
+                return true;
+            }
+        });
+        popupMenu.show();
+    }
+
+    private ArrayList<String> getArtistSongs(String artist){
+        ArrayList<String> mSongs = new ArrayList<>();
+        for (int i=0; i<songlist.size(); i++){
+            if (songlist.get(i).getArtist().contains(artist)){
+                mSongs.add(songlist.get(i).getTitle());
+            }
+        }
+        return mSongs;
+    }
+
     @Override
     public View getView(int position, View converView, ViewGroup viewGroup) {
         ViewHolder viewholder;
@@ -101,29 +129,6 @@ public class ArtistAdapter extends BaseAdapter{
         return String.valueOf(count);
     }
 
-    private void showPopupMenu(View view){
-        final int postion = (int)view.getTag();
-        PopupMenu popupMenu = new PopupMenu(context,view);
-        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_artist,popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                switch (menuItem.getItemId()){
-                    case R.id.playAll:
-                        playAll(artistList.get(postion));
-                        break;
-                    case R.id.addToList:
-                        SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
-                        selectPlayListFragmentDialog.addListToFile(getArtistSongs(artistList.get(postion)));
-                        selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
-                        break;
-                }
-                return true;
-            }
-        });
-        popupMenu.show();
-    }
-
     private void playAll(String artist){
         ArrayList<Song> mSongs = new ArrayList<>();
         for (int i=0; i<songlist.size(); i++){
@@ -138,13 +143,4 @@ public class ArtistAdapter extends BaseAdapter{
         }
     }
 
-    private ArrayList<String> getArtistSongs(String artist){
-        ArrayList<String> mSongs = new ArrayList<>();
-        for (int i=0; i<songlist.size(); i++){
-            if (songlist.get(i).getArtist().contains(artist)){
-                mSongs.add(songlist.get(i).getTitle());
-            }
-        }
-        return mSongs;
-    }
 }

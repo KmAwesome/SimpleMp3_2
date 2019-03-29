@@ -14,7 +14,7 @@
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_margin="10dp"
-        app:srcCompat="@drawable/mp3" />
+        app:srcCompat="@drawable/view_mp3_icon" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -127,15 +127,20 @@
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="30sp"
+            android:layout_marginLeft="20sp"
+            android:background="@drawable/shape_button"
             android:layout_weight="1"
-            android:text="確定" />
+            android:text="取消" />
 
         <Button
             android:id="@+id/btnOK"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="20sp"
+            android:background="@drawable/shape_button"
             android:layout_weight="1"
-            android:text="取消" />
+            android:text="確定" />
     </LinearLayout>
 
 

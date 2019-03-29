@@ -25,7 +25,7 @@ public class SelectPlayListFragmentDialog extends DialogFragment{
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         songListInFile = new SongListInFile(this.getActivity());
-        songTitleList = songListInFile.readSongTitleInFile();
+        songTitleList = songListInFile.readTitleListInFile();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("請選擇播放清單");
         builder.setItems(songTitleList.toArray(new String[songTitleList.size()]), new DialogInterface.OnClickListener() {

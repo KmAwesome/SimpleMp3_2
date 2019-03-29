@@ -11,40 +11,48 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
 public class SongListInFile {
     private final String TAG = "SongListInFile";
-    private ArrayList<String> songTitleList;
     private ArrayList<Song> songList;
     private Context context;
     private InitSongList initSongList;
 
     public SongListInFile(Context context) {
-        songTitleList = new ArrayList<>();
         songList = new ArrayList<>();
         this.context = context;
         initSongList = ((MainActivity)context).getInitSongList();
     }
 
-    public ArrayList<String> readSongTitleInFile() {
+    public ArrayList<String> readTitleListInFile() {
+        ArrayList<String> stringTitles = new ArrayList<>();
         File file = context.getFileStreamPath("TitleList.bin");
         if (file.exists()){
             try {
                 InputStream inputStream = context.openFileInput("TitleList.bin");
                 ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-                songTitleList = (ArrayList<String>) objectInputStream.readObject();
+                stringTitles = (ArrayList<String>) objectInputStream.readObject();
             } catch (Exception e) { e.printStackTrace(); }
         }
-        return songTitleList;
+        return stringTitles;
     }
 
-    public void writeTitleListToFile(String... listTitle) {
-        for (String title : listTitle){
+    public void writeTitleListToFile(String title) {
+        ArrayList<String> songTitleList = readTitleListInFile();
+        if (!songTitleList.contains(title) && title.length() > 0) {
             songTitleList.add(title);
+            writeFile(songTitleList);
         }
+    }
 
+    public void writeTitleListToFile(ArrayList<String> titles) {
+        writeFile(titles);
+    }
+
+    private void writeFile(ArrayList<String> songTitleList) {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("TitleList.bin",Context.MODE_PRIVATE));
             objectOutputStream.writeObject(songTitleList);
@@ -53,12 +61,13 @@ public class SongListInFile {
             e.printStackTrace();
         }
     }
-
+    
     public ArrayList<Song> getSongListInFile(String songTitle) {
         if (songList != null) {
             songList.clear();
         }
-        ArrayList<Song> allSongList = initSongList.getAllSongList();
+        initSongList.initSongList();
+        ArrayList<Song> allSongList = initSongList.getSongList();
         ArrayList<String> songStringList = readSongListInFile(songTitle);
         for (int i=0; i<allSongList.size(); i++) {
             for (String s : songStringList) {

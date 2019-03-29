@@ -26,7 +26,6 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     private ArrayList<Song> songlist;
     private Context context;
     private InitSongList initSongList;
-    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
@@ -37,8 +36,7 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initSongList = ((MainActivity)context).getInitSongList();
-        musicController = ((MainActivity)context).getMusicController();
+        initSongList = new InitSongList(context);
         songlist = initSongList.getSongList();
         songAdt = new SongAdapter(context, songlist);
     }
@@ -54,10 +52,19 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        initSongList.initSongList();
+        songAdt.notifyDataSetChanged();
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        initSongList.setSongList(songlist);
+        MusicController musicController = ((MainActivity)context).getMusicController();
+        musicController.setSongList(songlist);
         musicController.setSongPos(i);
         musicController.playSong();
     }
+    
 
 }

@@ -15,8 +15,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
@@ -49,12 +47,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private InitSongList initSongList;
     public MusicControlNotification musicControlNotification;
     private int songPosn;
+    private static Boolean isBind;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
             updateUi();
             return MusicService.this;
+        }
+    }
+
+    public void updateUi() {
+        if (songlist.size() > 0) {
+            updateUiIntent.setAction(PLAY);
+            updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
+            updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
+            sendBroadcast(updateUiIntent);
         }
     }
 
@@ -88,13 +96,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         initSongList = new InitSongList(this);
         songlist = initSongList.getSongList();
         setRepeatMode(REPEAT);
-        try {
-            playItemSong = songlist.get(songPosn);
-            long currSong = playItemSong.getId();
-            Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
-            player.setDataSource(getApplicationContext(), trackUri);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (songlist.size() > 0 ) {
+            try {
+                playItemSong = songlist.get(songPosn);
+                long currSong = playItemSong.getId();
+                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+                player.setDataSource(getApplicationContext(), trackUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -118,39 +128,38 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void playSong() {
         try {
-            player.reset();
-            playItemSong = songlist.get(songPosn);
-            long currSong = playItemSong.getId();
-            Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
-            player.setDataSource(getApplicationContext(), trackUri);
-            player.prepareAsync();
-            updateUi();
-            musicControlNotification.createNotification();
-            musicControlNotification.updateNotificationUI("Play");
+            if (songlist.size() > 0) {
+                player.reset();
+                playItemSong = songlist.get(songPosn);
+                long currSong = playItemSong.getId();
+                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+                player.setDataSource(getApplicationContext(), trackUri);
+                player.prepareAsync();
+                updateUi();
+                musicControlNotification.createNotification();
+                musicControlNotification.updateNotificationUI("Play");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void updateUi() {
-        updateUiIntent.setAction(PLAY);
-        updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
-        updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
-        sendBroadcast(updateUiIntent);
-    }
-
     public void go() {
-        player.start();
-        musicControlNotification.createNotification();
-        musicControlNotification.updateNotificationUI("Play");
+        if (songlist.size() > 0) {
+            player.start();
+            musicControlNotification.createNotification();
+            musicControlNotification.updateNotificationUI("Play");
+        }
     }
 
     public void pausePlayer() {
-        player.pause();
-        musicControlNotification.createNotification();
-        musicControlNotification.updateNotificationUI("Pause");
-        updateUiIntent.setAction(PAUSE);
-        sendBroadcast(updateUiIntent);
+        if (songlist.size() > 0) {
+            player.pause();
+            musicControlNotification.createNotification();
+            musicControlNotification.updateNotificationUI("Pause");
+            updateUiIntent.setAction(PAUSE);
+            sendBroadcast(updateUiIntent);
+        }
     }
 
     public void playPrev() {
@@ -171,11 +180,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case REPEATONE:
                 break;
             case SHUFFLE:
-                int newSong = songPosn;
-                while (newSong == songPosn) {
-                    newSong = rand.nextInt(songlist.size());
+                if (songlist.size() > 2) {
+                    int newSong = songPosn;
+                    while (newSong == songPosn) {
+                        newSong = rand.nextInt(songlist.size());
+                    }
+                    songPosn = newSong;
                 }
-                songPosn = newSong;
                 break;
         }
         playSong();
@@ -213,6 +224,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 break;
         }
         Log.i(TAG, "setRepeatMode: " + repeatMode);
+    }
+
+    public String getRepeatMode() {
+        return repeatMode;
     }
 
     public void setSongList(ArrayList<Song> songs) {
@@ -254,11 +269,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             notiticationFilter.addAction("pauseNotification");
 
             mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.notification_mp3_control);
-            mRemoteViews.setImageViewResource(R.id.viewLogo, R.drawable.logo);
-            mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.noteplay);
-            mRemoteViews.setImageViewResource(R.id.noteNext, R.drawable.notenext);
-            mRemoteViews.setImageViewResource(R.id.notePrev, R.drawable.noteprev);
-            mRemoteViews.setImageViewResource(R.id.noteClose, R.drawable.noteclose);
+            mRemoteViews.setImageViewResource(R.id.viewLogo, R.drawable.view_note_logo);
+            mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.btn_note_play);
+            mRemoteViews.setImageViewResource(R.id.noteNext, R.drawable.btn_note_next);
+            mRemoteViews.setImageViewResource(R.id.notePrev, R.drawable.btn_note_prev);
+            mRemoteViews.setImageViewResource(R.id.noteClose, R.drawable.btn_note_close);
 
             mNotificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 
@@ -321,14 +336,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     }
                     mBuilder = new Notification.Builder(context, CHANNEL_ID)
                             .setChannelId(CHANNEL_ID)
-                            .setSmallIcon(R.drawable.mp3)
+                            .setSmallIcon(R.drawable.view_mp3_icon)
                             .setCustomContentView(mRemoteViews)
                             .setContentIntent(pendingIntent)
                             .build();
                 }
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                     mBuilder = new Notification.Builder(context)
-                            .setSmallIcon(R.drawable.mp3)
+                            .setSmallIcon(R.drawable.view_mp3_icon)
                             .setContent(mRemoteViews)
                             .setContentIntent(pendingIntent)
                             .setPriority(Notification.PRIORITY_MAX)
@@ -340,11 +355,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
 
         public void updateNotificationUI(String tag) {
-            Log.i(TAG, "updateNotificationUI: !!!!" + tag);
             if (tag.equals("Play")) {
-                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.notepause);
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.btn_note_pause);
             }else if (tag.equals("Pause")) {
-                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.play);
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.btn_note_play);
             }
             mRemoteViews.setTextViewText(R.id.noteTitle, playItemSong.getTitle());
             mRemoteViews.setTextViewText(R.id.noteArtist, playItemSong.getArtist());
