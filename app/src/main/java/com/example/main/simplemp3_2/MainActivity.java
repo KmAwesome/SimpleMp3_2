@@ -6,18 +6,28 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -30,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private final static int PERMISSION_ALL = 1;
     private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
     private RelativeLayout relativeLayout;
+    private LinearLayout songViewLinearLayout;
     private View view;
     private TabLayout tabLayout;
     private ViewPager viewPager;
@@ -42,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter updateUIfilter;
     private PagerAdapter pagerAdapter;
     private boolean permissionGranted;
+    private DrawerLayout drawerLayout;
 
     BroadcastReceiver updateUI = new BroadcastReceiver() {
         @Override
@@ -60,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.drawer_layout);
         requestPermission(PERMISSIONS);
     }
 
@@ -77,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 initTabLayout();
                 initView();
                 initUpdateUiReceiver();
+                initDrawer();
             }
         }
     }
@@ -95,6 +108,32 @@ public class MainActivity extends AppCompatActivity {
         }else {
             finish();
         }
+    }
+
+    private void initDrawer() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
+                this,drawerLayout, toolbar, R.string.drawer_set, R.string.drawer_set);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.set) {
+
+                }else if (id == R.id.timer) {
+                    CountDownDialog countDownDialog = new CountDownDialog();
+                    countDownDialog.show(getFragmentManager(), "countDownDialog");
+                }
+                drawerLayout.closeDrawers();
+                return true;
+            }
+        });
     }
 
     public void initTabLayout() {
@@ -120,6 +159,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initView() {
+        songViewLinearLayout = findViewById(R.id.songview_linearlayout);
+        songViewLinearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, PlayActivity.class);
+                startActivity(intent);
+            }
+        });
+
         txv_showTitle = findViewById(R.id.txv_title);
         txv_showArtist = findViewById(R.id.txv_artist);
 
@@ -175,7 +223,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0){
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawers();
+        }else if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             moveTaskToBack(true);
         }else{
             getSupportFragmentManager().popBackStack();

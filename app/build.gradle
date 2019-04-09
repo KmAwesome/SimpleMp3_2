@@ -34,5 +34,3 @@ dependencies {
     implementation 'com.crashlytics.sdk.android:crashlytics:2.9.5'
     implementation files('libs/Mp3Tag.jar')
 }
-
-

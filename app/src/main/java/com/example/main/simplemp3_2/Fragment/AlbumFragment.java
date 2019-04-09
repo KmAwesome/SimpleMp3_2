@@ -12,14 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
 import com.example.main.simplemp3_2.Adapter.AlbumAdapter;
-import com.example.main.simplemp3_2.Fragment.SongFragment;
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song;
-import com.example.main.simplemp3_2.SongListInFile;
-
 import java.util.ArrayList;
 
 public class AlbumFragment extends Fragment implements AdapterView.OnItemClickListener {

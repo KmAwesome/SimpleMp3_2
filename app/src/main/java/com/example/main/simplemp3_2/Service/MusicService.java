@@ -38,6 +38,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public final static String REPEATONE = "RepeatOne";
     public final static String SHUFFLE = "Shuffle";
     public final IBinder musicBind = new MusicBinder();
+    public MusicControlNotification musicControlNotification;
     private MediaPlayer player;
     private String repeatMode;
     private Random rand;
@@ -45,9 +46,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public Song playItemSong;
     private ArrayList<Song> songlist;
     private InitSongList initSongList;
-    public MusicControlNotification musicControlNotification;
     private int songPosn;
-    private static Boolean isBind;
+    private AudioManager audioManager;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
@@ -79,23 +79,23 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCreate() {
         super.onCreate();
-        initMusicPlayer();
+        setRepeatMode(REPEAT);
+        musicControlNotification = new MusicControlNotification(this);
+        initSongList = new InitSongList(this);
+        songlist = initSongList.getSongList();
         updateUiIntent = new Intent();
+        rand = new Random();
+        initMusicPlayer();
+        getAudioFocus();
     }
-
-    public void initMusicPlayer() {
+    
+    private void initMusicPlayer() {
         player = new MediaPlayer();
         player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnErrorListener(this);
-        songlist = new ArrayList<>();
-        rand = new Random();
-        musicControlNotification = new MusicControlNotification(this);
-        initSongList = new InitSongList(this);
-        songlist = initSongList.getSongList();
-        setRepeatMode(REPEAT);
         if (songlist.size() > 0 ) {
             try {
                 playItemSong = songlist.get(songPosn);
@@ -107,6 +107,31 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             }
         }
     }
+
+    public void getAudioFocus() {
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+    }
+
+    AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            switch (focusChange) {
+                case AudioManager.AUDIOFOCUS_GAIN :
+                    Log.i(TAG, "AUDIOFOCUS_GAIN");
+                    if (getPosn() != 0) {
+                        go();
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT :
+                    Log.i(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
+                    if (getPosn() != 0) {
+                        pausePlayer();
+                    }
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
@@ -180,7 +205,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case REPEATONE:
                 break;
             case SHUFFLE:
-                if (songlist.size() > 2) {
+                if (songlist.size() >= 2) {
                     int newSong = songPosn;
                     while (newSong == songPosn) {
                         newSong = rand.nextInt(songlist.size());
@@ -194,6 +219,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public boolean isPlaying() {
         return player.isPlaying();
+    }
+
+    public ArrayList<Song> getSonglist() {
+        return songlist;
     }
 
     public void setPosn(int posn) {
@@ -241,7 +270,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public int getSongPos() {
         return songPosn;
     }
-
 
     @Override
     public void onDestroy() {

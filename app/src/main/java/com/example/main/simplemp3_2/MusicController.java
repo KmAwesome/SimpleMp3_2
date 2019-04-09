@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
 
 import com.example.main.simplemp3_2.Service.MusicService;
@@ -25,7 +26,9 @@ public class MusicController implements View.OnClickListener {
 
     public MusicController(Context context) {
         this.context = context;
-        this.mainActivity = (MainActivity)context;
+        if (context instanceof MainActivity) {
+            this.mainActivity = (MainActivity)context;
+        }
         bindMusicService();
     }
 
@@ -42,6 +45,8 @@ public class MusicController implements View.OnClickListener {
             musicService = musicBinder.getService();
             musicPlayHandler.post(mp3Start);
             isBind = true;
+            mainActivity.imgbtn_repeat.setTag(musicService.getRepeatMode());
+            setRepeatMode(mainActivity.imgbtn_repeat);
         }
 
         @Override
@@ -79,8 +84,8 @@ public class MusicController implements View.OnClickListener {
                 mainActivity.mp3SeekBar.setProgress(getSongPlayingPos());
                 mainActivity.imgbtn_playSong.setImageResource(R.drawable.btn_pause);
             }
-            musicPlayHandler.postDelayed(mp3Start,50);
             updateRepeatImgButtonView();
+            musicPlayHandler.postDelayed(mp3Start,50);
         }
     };
 
@@ -136,6 +141,10 @@ public class MusicController implements View.OnClickListener {
 
     public boolean isPlaying() {
         return musicService.isPlaying();
+    }
+
+    public ArrayList<Song> getSongList() {
+        return musicService.getSonglist();
     }
 
     public void setSongPos(int pos){
