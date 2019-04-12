@@ -20,14 +20,14 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/viewValue"
+            android:id="@+id/view_value"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="15dp"
             android:src="@drawable/view_value" />
 
         <SeekBar
-            android:id="@+id/seekBarValue"
+            android:id="@+id/seekbar_value_control"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginRight="15dp"
@@ -51,29 +51,32 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textViewSongTitle"
+                android:id="@+id/txv_song_title"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="SongTitile" />
+                android:text="SongTitile"
+                android:textSize="20sp"/>
 
             <TextView
-                android:id="@+id/textViewSongArtist"
+                android:id="@+id/txv_song_artist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="SongArtist" />
+                android:text="SongArtist"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/textViewSongTime"
+                android:id="@+id/txv_song_time"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="4"
@@ -81,13 +84,13 @@
                 android:text="time" />
 
             <SeekBar
-                android:id="@+id/seekBarSongProgress"
+                android:id="@+id/seekbar_song_progress"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <TextView
-                android:id="@+id/textViewSongDuration"
+                android:id="@+id/txv_song_duration"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="4"
@@ -103,40 +106,40 @@
 
             <ImageButton
                 android:id="@+id/imgbtn_repeat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
                 android:src="@drawable/btn_repeat_all" />
 
             <ImageButton
                 android:id="@+id/imgbtn_prev"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
                 android:src="@drawable/btn_play_prev" />
 
             <ImageButton
                 android:id="@+id/imgbtn_play"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
                 android:src="@drawable/btn_play" />
 
             <ImageButton
                 android:id="@+id/imgbtn_next"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
                 android:src="@drawable/btn_play_next" />
 
             <ImageButton
                 android:id="@+id/imgbtn_favorite"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
                 android:src="@drawable/btn_favorite" />

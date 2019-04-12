@@ -15,20 +15,16 @@ import java.util.ArrayList;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
 import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
+import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
 
-public class MusicController implements View.OnClickListener {
+public class MusicController {
     private final String TAG = "MusicController";
     private Context context;
-    public Handler musicPlayHandler = new Handler();
     private MusicService musicService;
-    private MainActivity mainActivity;
-    private boolean isBind;
+    private boolean isBind = false;
 
     public MusicController(Context context) {
         this.context = context;
-        if (context instanceof MainActivity) {
-            this.mainActivity = (MainActivity)context;
-        }
         bindMusicService();
     }
 
@@ -43,10 +39,7 @@ public class MusicController implements View.OnClickListener {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             MusicService.MusicBinder musicBinder = (MusicService.MusicBinder) iBinder;
             musicService = musicBinder.getService();
-            musicPlayHandler.post(mp3Start);
             isBind = true;
-            mainActivity.imgbtn_repeat.setTag(musicService.getRepeatMode());
-            setRepeatMode(mainActivity.imgbtn_repeat);
         }
 
         @Override
@@ -55,84 +48,20 @@ public class MusicController implements View.OnClickListener {
         }
     };
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()){
-            case R.id.imgbtn_play:
-                if (musicService.getPosn() == 0) {
-                    playSong();
-                }else if (musicService.isPlaying()) {
-                    pauseSong();
-                }else {
-                    goSong();
-                }
-                break;
-            case R.id.imgbtn_next:
-                playNext();
-                break;
-            case R.id.imgbtn_repeat:
-                setRepeatMode(view);
-                break;
-        }
-    }
-
-    private Runnable mp3Start = new Runnable() {
-        @Override
-        public void run() {
-            if (isPlaying()) {
-                mainActivity.mp3SeekBar.setMax(getSongDuration());
-                mainActivity.mp3SeekBar.setProgress(getSongPlayingPos());
-                mainActivity.imgbtn_playSong.setImageResource(R.drawable.btn_pause);
-            }
-            updateRepeatImgButtonView();
-            musicPlayHandler.postDelayed(mp3Start,50);
-        }
-    };
-
-    private void updateRepeatImgButtonView() {
-        if (musicService.getRepeatMode().equals(REPEAT)) {
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_all);
-        }else if (musicService.getRepeatMode().equals(REPEATONE)) {
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_one);
-        }else if (musicService.getRepeatMode().equals(SHUFFLE)) {
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_shffle);
-        }
-    }
-
-    public void setRepeatMode(View view) {
-        if (view.getTag().equals(REPEAT)) {
-            musicService.setRepeatMode(REPEAT);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_all);
-            view.setTag(REPEATONE);
-        }else if (view.getTag().equals(REPEATONE)) {
-            musicService.setRepeatMode(REPEATONE);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_one);
-            view.setTag(SHUFFLE);
-        }else if (view.getTag().equals(SHUFFLE)) {
-            musicService.setRepeatMode(SHUFFLE);
-            mainActivity.imgbtn_repeat.setImageResource(R.drawable.btn_repeat_shffle);
-            view.setTag(REPEAT);
-        }
-    }
-
     public void playSong(){
         musicService.playSong();
-        musicPlayHandler.post(mp3Start);
     }
 
     public void playPrev(){
         musicService.playPrev();
-        musicPlayHandler.post(mp3Start);
     }
 
     public void playNext(){
         musicService.playNext();
-        musicPlayHandler.post(mp3Start);
     }
 
     public void goSong(){
         musicService.go();
-        musicPlayHandler.post(mp3Start);
     }
 
     public void pauseSong(){
@@ -141,6 +70,10 @@ public class MusicController implements View.OnClickListener {
 
     public boolean isPlaying() {
         return musicService.isPlaying();
+    }
+
+    public void setSongList(ArrayList<Song> songs) {
+        musicService.setSongList(songs);
     }
 
     public ArrayList<Song> getSongList() {
@@ -163,17 +96,17 @@ public class MusicController implements View.OnClickListener {
         return musicService.getPosn();
     }
 
-    public void setSongList(ArrayList<Song> songs) {
-        musicService.setSongList(songs);
-    }
-
     public int getSongDuration() {
         return musicService.getDur();
     }
 
-    public void removeHandlerCallback() {
-        if (musicPlayHandler != null) {
-            musicPlayHandler.removeCallbacks(mp3Start);
+    public void setRepeatMode() {
+        if (repeatMode.equals(REPEAT)) {
+            repeatMode = REPEATONE;
+        }else if (repeatMode.equals(REPEATONE)) {
+            repeatMode = SHUFFLE;
+        }else if (repeatMode.equals(SHUFFLE)) {
+            repeatMode = REPEAT;
         }
     }
 

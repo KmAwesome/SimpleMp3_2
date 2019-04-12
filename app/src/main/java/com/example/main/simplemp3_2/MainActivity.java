@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -30,42 +31,95 @@ import android.widget.TextView;
 
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
 
+import java.io.Serializable;
+
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static com.example.main.simplemp3_2.Service.MusicService.PAUSE;
 import static com.example.main.simplemp3_2.Service.MusicService.PLAY;
+import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
 import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
+import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
+import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG  = "MainActivity";
-    private final static int PERMISSION_ALL = 1;
-    private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
-    private RelativeLayout relativeLayout;
-    private LinearLayout songViewLinearLayout;
-    private View view;
-    private TabLayout tabLayout;
-    private ViewPager viewPager;
+    public MusicController musicController;
     private InitSongList initSongList;
     private SongListInFile songListInFile;
-    public SeekBar mp3SeekBar;
-    public MusicController musicController;
-    public TextView txv_showTitle,txv_showArtist;
-    public ImageButton imgbtn_playSong, imgbtn_playNext,imgbtn_repeat, imgbtn_playPrev;
+    private final String TAG  = "MainActivity";
+    private final static int PERMISSION_ALL = 1;
+    private static Handler musicHandler = new Handler();
     private IntentFilter updateUIfilter;
     private PagerAdapter pagerAdapter;
-    private boolean permissionGranted;
     private DrawerLayout drawerLayout;
+    private RelativeLayout relativeLayout;
+    private LinearLayout songViewLinearLayout;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+    private View view;
+    public SeekBar mp3SeekBar;
+    public TextView txv_showTitle,txv_showArtist;
+    public ImageButton btnPlaySong, btnPlayNext,btnRepeat, btnPlayPrev;
+    private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
+
+    private void initUpdateUiReceiver() {
+        updateUIfilter = new IntentFilter();
+        updateUIfilter.addAction(PLAY);
+        updateUIfilter.addAction(PAUSE);
+        registerReceiver(updateUI, updateUIfilter);
+    }
 
     BroadcastReceiver updateUI = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PAUSE)) {
-                imgbtn_playSong.setImageResource(R.drawable.btn_play);
+                btnPlaySong.setImageResource(R.drawable.btn_play);
             }else if (intent.getAction().equals(PLAY)) {
                 txv_showTitle.setText(intent.getStringExtra("songTitle"));
                 txv_showArtist.setText(intent.getStringExtra("songArtist"));
                 mp3SeekBar.setMax(musicController.getSongDuration());
                 mp3SeekBar.setProgress(musicController.getSongPlayingPos());
             }
+            musicHandler.post(mp3Start);
+        }
+    };
+
+    private Runnable mp3Start = new Runnable() {
+        @Override
+        public void run() {
+            if (musicController.isPlaying()) {
+                mp3SeekBar.setMax(musicController.getSongDuration());
+                mp3SeekBar.setProgress(musicController.getSongPlayingPos());
+                btnPlaySong.setImageResource(R.drawable.btn_pause);
+            }
+            updateRepeatImgButtonView();
+            musicHandler.postDelayed(mp3Start,50);
+        }
+    };
+
+    private void updateRepeatImgButtonView() {
+        if (repeatMode.equals(REPEAT)) {
+            btnRepeat.setImageResource(R.drawable.btn_repeat_all);
+        }else if (repeatMode.equals(REPEATONE)) {
+            btnRepeat.setImageResource(R.drawable.btn_repeat_one);
+        }else if (repeatMode.equals(SHUFFLE)) {
+            btnRepeat.setImageResource(R.drawable.btn_repeat_shffle);
+        }
+    }
+
+    SeekBar.OnSeekBarChangeListener mp3SeekBarChangeLIstener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            musicController.setSongPlayingPos(seekBar.getProgress());
         }
     };
 
@@ -82,14 +136,13 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, permissions, PERMISSION_ALL);
             } else {
                 Log.i(TAG, "PERMISSION_GRANTED");
-                permissionGranted = true;
                 musicController = new MusicController(this);
                 initSongList = new InitSongList(this);
                 songListInFile = new SongListInFile(this);
+                initDrawer();
                 initTabLayout();
                 initView();
                 initUpdateUiReceiver();
-                initDrawer();
             }
         }
     }
@@ -102,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             musicController = new MusicController(this);
             initSongList = new InitSongList(this);
             songListInFile = new SongListInFile(this);
+            initDrawer();
             initTabLayout();
             initView();
             initUpdateUiReceiver();
@@ -160,52 +214,48 @@ public class MainActivity extends AppCompatActivity {
 
     public void initView() {
         songViewLinearLayout = findViewById(R.id.songview_linearlayout);
-        songViewLinearLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, PlayActivity.class);
-                startActivity(intent);
-            }
-        });
-
+        btnPlaySong = findViewById(R.id.imgbtn_play);
+        btnPlayNext = findViewById(R.id.imgbtn_next);
+        btnRepeat = findViewById(R.id.btnRepeat);
         txv_showTitle = findViewById(R.id.txv_title);
         txv_showArtist = findViewById(R.id.txv_artist);
 
-        imgbtn_playSong = findViewById(R.id.imgbtn_play);
-        imgbtn_playNext = findViewById(R.id.imgbtn_next);
-        imgbtn_repeat = findViewById(R.id.imgbtn_repeat);
-        imgbtn_playSong.setOnClickListener(musicController);
-        imgbtn_playNext.setOnClickListener(musicController);
-        imgbtn_repeat.setOnClickListener(musicController);
+        songViewLinearLayout.setOnClickListener(controlListener);
+        btnPlaySong.setOnClickListener(controlListener);
+        btnPlayNext.setOnClickListener(controlListener);
+        btnRepeat.setOnClickListener(controlListener);
 
         mp3SeekBar = findViewById(R.id.mp3_seekbar);
         mp3SeekBar.setOnSeekBarChangeListener(mp3SeekBarChangeLIstener);
 
         txv_showTitle.setSelected(true);
-        imgbtn_repeat.setTag(REPEATONE);
+        btnRepeat.setTag(REPEATONE);
     }
 
-    private void initUpdateUiReceiver() {
-        updateUIfilter = new IntentFilter();
-        updateUIfilter.addAction(PLAY);
-        updateUIfilter.addAction(PAUSE);
-        registerReceiver(updateUI, updateUIfilter);
-    }
-
-    SeekBar.OnSeekBarChangeListener mp3SeekBarChangeLIstener = new SeekBar.OnSeekBarChangeListener() {
+    View.OnClickListener controlListener = new View.OnClickListener() {
         @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            musicController.setSongPlayingPos(seekBar.getProgress());
+        public void onClick(View view) {
+            switch (view.getId()){
+                case R.id.imgbtn_play:
+                    if (musicController.getSongPlayingPos() == 0) {
+                        musicController.playSong();
+                    }else if (musicController.isPlaying()) {
+                        musicController.pauseSong();
+                    }else {
+                        musicController.goSong();
+                    }
+                    break;
+                case R.id.imgbtn_next:
+                    musicController.playNext();
+                    break;
+                case R.id.btnRepeat:
+                    musicController.setRepeatMode();
+                    break;
+                case R.id.songview_linearlayout:
+                    Intent intent = new Intent(MainActivity.this, PlayActivity.class);
+                    startActivity(intent);
+                    break;
+            }
         }
     };
 
@@ -240,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(updateUI);
         }
         if (musicController != null) {
-            musicController.removeHandlerCallback();
+            musicHandler.removeCallbacks(mp3Start);
             musicController.unbindMusicService();
         }
 

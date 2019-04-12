@@ -59,7 +59,7 @@
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/imgbtn_repeat"
+            android:id="@+id/btnRepeat"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"

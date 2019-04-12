@@ -15,15 +15,11 @@ public class InitSongList {
     private final String TAG = "InitSongList";
     private Context context;
     private ArrayList<Song> songlist;
-    private MusicController musicController;
 
     public InitSongList(Context context) {
         this.context = context;
         songlist = new ArrayList<>();
         initSongList();
-        if (context instanceof MainActivity){
-            musicController = ((MainActivity)context).getMusicController();
-        }
     }
 
     public void initSongList() {
@@ -60,8 +56,9 @@ public class InitSongList {
 
                     int time = (int) TimeUnit.MILLISECONDS.toSeconds(thisDuraion);
 
-                    if (time > 60)
+                    if (time > 60) {
                         songlist.add(new Song(thisID, thisTitle, thisArtist, thisDuraion, thispath, thisAlbum,thisStyle));
+                    }
 
                 }catch (Exception e){e.printStackTrace();}
             }
@@ -79,7 +76,6 @@ public class InitSongList {
 
     public void setSongList(ArrayList<Song> songs) {
         songlist = songs;
-        musicController.setSongList(songs);
     }
 
     public ArrayList<Song> getSongList() {

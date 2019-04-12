@@ -31,23 +31,24 @@ import java.util.Random;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    private String TAG = "MusicService";
-    public static final String PLAY = "PLAY";
-    public static final String PAUSE = "PAUSE";
+    public MusicControlNotification musicControlNotification;
+    private InitSongList initSongList;
+    private final String TAG = "MusicService";
+    public final IBinder musicBind = new MusicBinder();
+    public final static String PLAY = "PLAY";
+    public final static String PAUSE = "PAUSE";
     public final static String REPEAT = "Repeat";
     public final static String REPEATONE = "RepeatOne";
     public final static String SHUFFLE = "Shuffle";
-    public final IBinder musicBind = new MusicBinder();
-    public MusicControlNotification musicControlNotification;
+    public static String repeatMode;
+    private AudioManager audioManager;
     private MediaPlayer player;
-    private String repeatMode;
     private Random rand;
     private Intent updateUiIntent;
-    public Song playItemSong;
     private ArrayList<Song> songlist;
-    private InitSongList initSongList;
+    public Song playItemSong;
     private int songPosn;
-    private AudioManager audioManager;
+    private static boolean isPause;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
@@ -77,16 +78,34 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        mediaPlayer.start();
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        mediaPlayer.reset();
+        playNext();
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        mediaPlayer.reset();
+        mediaPlayer.start();
+        return false;
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
-        setRepeatMode(REPEAT);
         musicControlNotification = new MusicControlNotification(this);
         initSongList = new InitSongList(this);
         songlist = initSongList.getSongList();
         updateUiIntent = new Intent();
-        rand = new Random();
         initMusicPlayer();
         getAudioFocus();
+        rand = new Random();
+        setRepeatMode(REPEAT);
     }
     
     private void initMusicPlayer() {
@@ -118,38 +137,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN :
-                    Log.i(TAG, "AUDIOFOCUS_GAIN");
-                    if (getPosn() != 0) {
+                    Log.i(TAG, "AUDIOFOCUS_GAIN" + isPause);
+                    if (getPosn() != 0 && !isPause) {
+                        Log.i(TAG, "onAudioFocusChange: ");
                         go();
                     }
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT :
-                    Log.i(TAG, "AUDIOFOCUS_LOSS_TRANSIENT");
-                    if (getPosn() != 0) {
+                    Log.i(TAG, "AUDIOFOCUS_LOSS_TRANSIENT" + isPause);
+                    if (getPosn() != 0 && !isPause) {
                         pausePlayer();
+                        isPause = false;
                     }
                     break;
             }
         }
     };
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        mediaPlayer.start();
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        mediaPlayer.reset();
-        playNext();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        mediaPlayer.reset();
-        mediaPlayer.start();
-        return false;
-    }
 
     public void playSong() {
         try {
@@ -163,6 +166,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 updateUi();
                 musicControlNotification.createNotification();
                 musicControlNotification.updateNotificationUI("Play");
+                isPause = false;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -174,6 +178,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             player.start();
             musicControlNotification.createNotification();
             musicControlNotification.updateNotificationUI("Play");
+            isPause = false;
         }
     }
 
@@ -184,6 +189,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             musicControlNotification.updateNotificationUI("Pause");
             updateUiIntent.setAction(PAUSE);
             sendBroadcast(updateUiIntent);
+            isPause = true;
         }
     }
 
@@ -225,12 +231,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return songlist;
     }
 
+    public void setSongList(ArrayList<Song> songs) {
+        songlist = songs;
+    }
+
     public void setPosn(int posn) {
         player.seekTo(posn);
     }
 
     public int getPosn() {
         return player.getCurrentPosition();
+    }
+
+    public void setSongPos(int songIndex) {
+        songPosn = songIndex;
+    }
+
+    public int getSongPos() {
+        return songPosn;
     }
 
     public int getDur() {
@@ -252,23 +270,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 repeatMode = SHUFFLE;
                 break;
         }
-        Log.i(TAG, "setRepeatMode: " + repeatMode);
-    }
-
-    public String getRepeatMode() {
-        return repeatMode;
-    }
-
-    public void setSongList(ArrayList<Song> songs) {
-        songlist = songs;
-    }
-
-    public void setSongPos(int songIndex) {
-        songPosn = songIndex;
-    }
-
-    public int getSongPos() {
-        return songPosn;
     }
 
     @Override
