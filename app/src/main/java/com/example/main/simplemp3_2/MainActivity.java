@@ -2,6 +2,7 @@ package com.example.main.simplemp3_2;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -13,25 +14,23 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
-
-import java.io.Serializable;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static com.example.main.simplemp3_2.Service.MusicService.PAUSE;
@@ -42,10 +41,11 @@ import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
 import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
 
 public class MainActivity extends AppCompatActivity {
+    private final String TAG  = "MainActivity";
     public MusicController musicController;
     private InitSongList initSongList;
     private SongListInFile songListInFile;
-    private final String TAG  = "MainActivity";
+    private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
     private static Handler musicHandler = new Handler();
     private IntentFilter updateUIfilter;
@@ -56,10 +56,11 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private View view;
-    public SeekBar mp3SeekBar;
+    private ProgressBar mp3ProgressBar;
     public TextView txv_showTitle,txv_showArtist;
     public ImageButton btnPlaySong, btnPlayNext,btnRepeat, btnPlayPrev;
     private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
+    private CountDownDialog countDownDialog;
 
     private void initUpdateUiReceiver() {
         updateUIfilter = new IntentFilter();
@@ -72,12 +73,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(PAUSE)) {
-                btnPlaySong.setImageResource(R.drawable.btn_play);
+                btnPlaySong.setImageResource(R.drawable.main_btn_play);
             }else if (intent.getAction().equals(PLAY)) {
                 txv_showTitle.setText(intent.getStringExtra("songTitle"));
                 txv_showArtist.setText(intent.getStringExtra("songArtist"));
-                mp3SeekBar.setMax(musicController.getSongDuration());
-                mp3SeekBar.setProgress(musicController.getSongPlayingPos());
+                mp3ProgressBar.setMax(musicController.getSongDuration());
+                mp3ProgressBar.setProgress(musicController.getSongPlayingPos());
             }
             musicHandler.post(mp3Start);
         }
@@ -87,9 +88,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             if (musicController.isPlaying()) {
-                mp3SeekBar.setMax(musicController.getSongDuration());
-                mp3SeekBar.setProgress(musicController.getSongPlayingPos());
-                btnPlaySong.setImageResource(R.drawable.btn_pause);
+                mp3ProgressBar.setMax(musicController.getSongDuration());
+                mp3ProgressBar.setProgress(musicController.getSongPlayingPos());
+                btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
             updateRepeatImgButtonView();
             musicHandler.postDelayed(mp3Start,50);
@@ -98,30 +99,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateRepeatImgButtonView() {
         if (repeatMode.equals(REPEAT)) {
-            btnRepeat.setImageResource(R.drawable.btn_repeat_all);
+            btnRepeat.setImageResource(R.drawable.main_btn_repeat_all);
         }else if (repeatMode.equals(REPEATONE)) {
-            btnRepeat.setImageResource(R.drawable.btn_repeat_one);
+            btnRepeat.setImageResource(R.drawable.main_btn_repeat_one);
         }else if (repeatMode.equals(SHUFFLE)) {
-            btnRepeat.setImageResource(R.drawable.btn_repeat_shffle);
+            btnRepeat.setImageResource(R.drawable.main_btn_repeat_shffle);
         }
     }
-
-    SeekBar.OnSeekBarChangeListener mp3SeekBarChangeLIstener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            musicController.setSongPlayingPos(seekBar.getProgress());
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 musicController = new MusicController(this);
                 initSongList = new InitSongList(this);
                 songListInFile = new SongListInFile(this);
+                initToolBar();
                 initDrawer();
                 initTabLayout();
                 initView();
@@ -155,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
             musicController = new MusicController(this);
             initSongList = new InitSongList(this);
             songListInFile = new SongListInFile(this);
+            initToolBar();
             initDrawer();
             initTabLayout();
             initView();
@@ -164,25 +150,61 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void initToolBar() {
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.toolbar_menu);
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.menu_sort:
+                        String srot[] = {"默認", "日期"};
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setTitle("依方法排序");
+                        builder.setItems(srot, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (i == 0) {
+                                    initSongList.setSortBy(InitSongList.sortBy.sortByDefault);
+                                }else if (i == 1) {
+                                    initSongList.setSortBy(InitSongList.sortBy.sortByDate);
+                                }
+                                initSongList.saveData();
+                                initSongList.initSongList();
+                                pagerAdapter.refreshAllFragment();
+                            }
+                        }).show();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
     private void initDrawer() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
-                this,drawerLayout, toolbar, R.string.drawer_set, R.string.drawer_set);
+                this, drawerLayout, toolbar, R.string.drawer_set, R.string.drawer_set);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
+
+        Menu menu = navigationView.getMenu();
+        MenuItem menuItem = menu.findItem(R.id.timer);
+        countDownDialog = new CountDownDialog();
+        countDownDialog.setMenuItem(menuItem);
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
                 if (id == R.id.set) {
-
+                    Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                    startActivity(intent);
                 }else if (id == R.id.timer) {
-                    CountDownDialog countDownDialog = new CountDownDialog();
-                    countDownDialog.show(getFragmentManager(), "countDownDialog");
+                    countDownDialog.show(getSupportFragmentManager(), "countDownDialog");
                 }
                 drawerLayout.closeDrawers();
                 return true;
@@ -192,22 +214,24 @@ public class MainActivity extends AppCompatActivity {
 
     public void initTabLayout() {
         relativeLayout = findViewById(R.id.relativLayout);
-        view = LayoutInflater.from(this).inflate(R.layout.fragment_play,null);
+        view = LayoutInflater.from(this).inflate(R.layout.fragment_container,null);
         relativeLayout.addView(view);
 
-        tabLayout = findViewById(R.id.tablayout);
-        viewPager = findViewById(R.id.viewpager);
+        tabLayout = view.findViewById(R.id.tablayout);
+        viewPager = view.findViewById(R.id.viewpager);
 
         tabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.colorAccent));
         tabLayout.setTabTextColors(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorAccent) );
+        tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
 
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
+        tabLayout.addTab(tabLayout.newTab());
 
-        pagerAdapter = new PagerAdapter(getSupportFragmentManager(),tabLayout.getTabCount());
+        pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(pagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
     }
@@ -225,8 +249,7 @@ public class MainActivity extends AppCompatActivity {
         btnPlayNext.setOnClickListener(controlListener);
         btnRepeat.setOnClickListener(controlListener);
 
-        mp3SeekBar = findViewById(R.id.mp3_seekbar);
-        mp3SeekBar.setOnSeekBarChangeListener(mp3SeekBarChangeLIstener);
+        mp3ProgressBar = findViewById(R.id.mp3_seekbar);
 
         txv_showTitle.setSelected(true);
         btnRepeat.setTag(REPEATONE);
@@ -250,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.btnRepeat:
                     musicController.setRepeatMode();
+                    updateRepeatImgButtonView();
                     break;
                 case R.id.songview_linearlayout:
                     Intent intent = new Intent(MainActivity.this, PlayActivity.class);
@@ -272,19 +296,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawers();
-        }else if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            moveTaskToBack(true);
-        }else{
-            getSupportFragmentManager().popBackStack();
-        }
-    }
-
-    @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy: ");
         super.onDestroy();
         if (updateUIfilter != null) {
             unregisterReceiver(updateUI);
@@ -293,7 +305,17 @@ public class MainActivity extends AppCompatActivity {
             musicHandler.removeCallbacks(mp3Start);
             musicController.unbindMusicService();
         }
+    }
 
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawers();
+        }else if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            moveTaskToBack(true);
+        }else{
+            getSupportFragmentManager().popBackStack();
+        }
     }
 
 }

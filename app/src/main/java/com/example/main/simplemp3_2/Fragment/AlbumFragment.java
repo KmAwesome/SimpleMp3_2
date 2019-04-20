@@ -1,12 +1,9 @@
 package com.example.main.simplemp3_2.Fragment;
 
-import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +35,7 @@ public class AlbumFragment extends Fragment implements AdapterView.OnItemClickLi
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.m_listview, null,false);
+        View view = inflater.inflate(R.layout.listview_song, null,false);
         listView = view.findViewById(R.id.song_list);
         listView.setOnItemClickListener(this);
         return view;

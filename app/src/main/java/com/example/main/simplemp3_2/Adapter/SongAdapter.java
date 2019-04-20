@@ -90,7 +90,7 @@ public class SongAdapter extends BaseAdapter {
                         case R.id.addToList:
                             SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
                             selectPlayListFragmentDialog.addSongToFile(songlist.get(m_position).getTitle());
-                            selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
+                            selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
                             break;
                         case R.id.delete:
                             AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);

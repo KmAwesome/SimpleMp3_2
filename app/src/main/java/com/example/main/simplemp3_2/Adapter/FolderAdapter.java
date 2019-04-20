@@ -90,7 +90,7 @@ public class FolderAdapter extends BaseAdapter {
                     case R.id.addToList:
                         SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
                         selectPlayListFragmentDialog.addListToFile(getSongsInFolder(folderNameList.get(postion)));
-                        selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
+                        selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
                         break;
                 }
                 return true;

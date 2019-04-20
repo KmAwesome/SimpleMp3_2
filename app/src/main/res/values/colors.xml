@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorBackground">#fafafa</color>
-    <color name="colorPrimary">#9c9e9f</color>
+    <color name="colorPrimary">#B4B6B6</color>
     <color name="colorPrimaryDark">#808183</color>
     <color name="colorTextTitle">#3e3e3e</color>
     <color name="colorItem">#605f5e</color>
     <color name="colorAccent">#fa973a</color>
     <color name="colorProgressTint">#F6D3B3</color>
+    <color name="colorPlayBackground">#F8F7F5</color>
 </resources>

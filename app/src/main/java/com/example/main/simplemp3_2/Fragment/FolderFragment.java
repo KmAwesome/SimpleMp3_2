@@ -4,8 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.INotificationSideChannel;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +12,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.Adapter.FolderAdapter;
 import com.example.main.simplemp3_2.InitSongList;
-import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song;
 
@@ -37,13 +33,14 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
         super.onAttach(context);
         this.context = context;
         initSongList = new InitSongList(context);
+        songlist = new ArrayList<>();
         songlist = initSongList.getSongList();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.m_listview,container,false);
+        View view = inflater.inflate(R.layout.listview_song,container,false);
         listView = view.findViewById(R.id.song_list);
         listView.setOnItemClickListener(this);
         return view;
@@ -53,7 +50,7 @@ public class FolderFragment extends Fragment implements AdapterView.OnItemClickL
     public void onStart() {
         super.onStart();
         initSongList.initSongList();
-        initSongList.getSongList();
+        songlist = initSongList.getSongList();
         folderAdapter = new FolderAdapter(context, getFolderName(), songlist);
         listView.setAdapter(folderAdapter);
     }

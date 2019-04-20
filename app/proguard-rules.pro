@@ -1,5 +1,5 @@
 # Add project specific ProGuard rules here.
-# You can control the btn_set of applied configuration files using the
+# You can control the main_btn_set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 #
 # For more details, see

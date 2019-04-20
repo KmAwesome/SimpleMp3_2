@@ -1,7 +1,6 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,7 +9,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
+import android.widget.Toolbar;
+import com.example.main.simplemp3_2.Fragment.SongFragment;
 import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
@@ -18,22 +18,22 @@ import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
 import com.example.main.simplemp3_2.Song;
 import java.util.ArrayList;
 
-public class AlbumAdapter extends BaseAdapter {
+public class SongStyleAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList<String> albumNames;
+    private ArrayList<String> styleNameList;
     private ArrayList<Song> songList;
     private MusicController musicController;
 
-    public AlbumAdapter(Context context, ArrayList<String> albumNames, ArrayList<Song> songList) {
+    public SongStyleAdapter(Context context, ArrayList<String> styleNameList, ArrayList<Song> songList) {
         this.context = context;
-        this.albumNames = albumNames;
+        this.styleNameList = styleNameList;
         this.songList = songList;
         musicController = new MusicController(context);
     }
 
     @Override
     public int getCount() {
-        return albumNames.size();
+        return styleNameList.size();
     }
 
     @Override
@@ -48,27 +48,26 @@ public class AlbumAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        view = LayoutInflater.from(context).inflate(R.layout.item_album, null, false);
-        TextView albumNameView = view.findViewById(R.id.txv_album_name);
-        TextView songCountView = view.findViewById(R.id.txv_song_num);
+        view = LayoutInflater.from(context).inflate(R.layout.item_song_style, null);
+        TextView songStyleName = view.findViewById(R.id.txv_style_name);
+        TextView songNum = view.findViewById(R.id.txv_song_num);
         ImageButton songSetting = view.findViewById(R.id.imgbtn_setting);
         songSetting.setOnClickListener(onClickListener);
         songSetting.setTag(i);
-        albumNameView.setText(albumNames.get(i));
-        songCountView.setText("曲目 " + getSongCounter(albumNames.get(i)));
+        String songStyle = styleNameList.get(i);
+        songStyleName.setText(songStyle);
+        songNum.setText("曲目 " + getSongNum(songStyle));
         return view;
     }
 
-    public String getSongCounter(String albumName) {
-        int count = 0;
-        if (songList.size() > 0){
-            for(int i = 0; i< songList.size(); i++){
-                if(songList.get(i).getAlbum().equals(albumName)){
-                    count++;
-                }
+    private String getSongNum(String styleName) {
+        int num = 0;
+        for (int i=0; i<songList.size(); i++) {
+            if (songList.get(i).getStyle().equals(styleName)) {
+                num++;
             }
         }
-        return String.valueOf(count);
+        return String.valueOf(num);
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -82,11 +81,11 @@ public class AlbumAdapter extends BaseAdapter {
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()){
                         case R.id.playAll:
-                            playAll(albumNames.get(postion));
+                            playAll(styleNameList.get(postion));
                             break;
                         case R.id.addToList:
                             SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
-                            selectPlayListFragmentDialog.addListToFile(getAlbumSongs(albumNames.get(postion)));
+                            selectPlayListFragmentDialog.addListToFile(getSongsFromStyleName(styleNameList.get(postion)));
                             selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
                             break;
                     }
@@ -97,10 +96,10 @@ public class AlbumAdapter extends BaseAdapter {
         }
     };
 
-    private void playAll(String albumName){
+    private void playAll(String styleName){
         ArrayList<Song> mSongs = new ArrayList<>();
         for (int i=0; i<songList.size(); i++){
-            if (songList.get(i).getAlbum().contains(albumName)){
+            if (songList.get(i).getStyle().contains(styleName)){
                 mSongs.add(songList.get(i));
             }
         }
@@ -111,10 +110,10 @@ public class AlbumAdapter extends BaseAdapter {
         }
     }
 
-    private ArrayList<String> getAlbumSongs(String albumName){
+    private ArrayList<String> getSongsFromStyleName(String styleName){
         ArrayList<String> mSongs = new ArrayList<>();
         for (int i=0; i<songList.size(); i++){
-            if (songList.get(i).getAlbum().contains(albumName)){
+            if (songList.get(i).getStyle().contains(styleName)){
                 mSongs.add(songList.get(i).getTitle());
             }
         }

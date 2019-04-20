@@ -8,10 +8,10 @@ import java.io.Serializable;
 
 public class Song implements Serializable {
     private long id;
-    private String title,artist,path,album,style;
+    private String title, artist, path, album, style, date;
     private long duration;
 
-    public Song(long songID, String songTtile, String songArtist, long songDuration, String songPath, String songAlbum, String songStyle){
+    public Song(long songID, String songTtile, String songArtist, long songDuration, String songPath, String songAlbum, String songStyle, String songDate){
         id = songID;
         title = songTtile;
         artist = songArtist;
@@ -19,6 +19,7 @@ public class Song implements Serializable {
         path = songPath;
         album = songAlbum;
         style = songStyle;
+        date = songDate;
     }
 
     public long getId() {
@@ -42,6 +43,10 @@ public class Song implements Serializable {
     public String getAlbum(){return album;}
 
     public String getStyle(){return style;}
+
+    public String getDate() {
+        return date;
+    }
 
 
 }

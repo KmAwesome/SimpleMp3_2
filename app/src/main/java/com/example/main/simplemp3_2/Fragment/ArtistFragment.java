@@ -3,7 +3,6 @@ package com.example.main.simplemp3_2.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import com.example.main.simplemp3_2.Adapter.ArtistAdapter;
 import com.example.main.simplemp3_2.InitSongList;
-import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song;
 import java.util.ArrayList;
@@ -40,7 +37,7 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.m_listview,container,false);
+        View view = inflater.inflate(R.layout.listview_song,container,false);
         listView = view.findViewById(R.id.song_list);
         listView.setOnItemClickListener(this);
         return view;

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/home"
+            android:title="音樂庫"
+            android:icon="@drawable/drawer_home" />
+        <item
+            android:id="@+id/timer"
+            android:title="@string/drawer_timer"
+            android:icon="@drawable/drawer_timer" />
+        <item
+            android:id="@+id/set"
+            android:title="@string/drawer_set"
+            android:icon="@drawable/drawer_set" />
+    </group>
+</menu>

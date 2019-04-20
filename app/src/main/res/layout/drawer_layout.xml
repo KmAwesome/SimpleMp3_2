@@ -36,6 +36,10 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:menu="@menu/drawer_view"/>
+        android:paddingTop="30dp"
+        app:menu="@menu/drawer_menu"
+        app:itemTextColor="@color/colorTextTitle"
+        app:itemBackground="@color/colorBackground"
+        app:itemIconTint="@color/colorItem"/>
 
 </android.support.v4.widget.DrawerLayout>

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +43,7 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.m_listview, container, false);
+        View view = inflater.inflate(R.layout.listview_song, container, false);
         songView = view.findViewById(R.id.song_list);
         songView.setAdapter(songAdt);
         songView.setOnItemClickListener(this);
@@ -65,6 +64,4 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
         musicController.setSongPos(i);
         musicController.playSong();
     }
-    
-
 }

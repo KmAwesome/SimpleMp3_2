@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import com.example.main.simplemp3_2.Adapter.PlayListAdapter;
+import com.example.main.simplemp3_2.AddSongToListDialog;
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.SongListInFile;
 import com.example.main.simplemp3_2.Song;
@@ -78,6 +79,9 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 songListInFile.writeTitleListToFile(editText.getText().toString());
+                AddSongToListDialog addSongToListDialog = new AddSongToListDialog();
+                addSongToListDialog.setPlayListTitle(editText.getText().toString());
+                addSongToListDialog.show(getActivity().getSupportFragmentManager(), null);
                 onStart();
             }
         });

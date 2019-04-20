@@ -2,5 +2,6 @@
     <string name="app_name">SimpleMp3</string>
     <string name="drawer_set">設定</string>
     <string name="drawer_timer">播放定時器</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="set_mp3_file_filter">音樂過濾</string>
+    <string name="set_version_description">版本資訊</string>
 </resources>

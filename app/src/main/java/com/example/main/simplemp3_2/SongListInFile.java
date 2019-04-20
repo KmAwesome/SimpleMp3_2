@@ -24,7 +24,7 @@ public class SongListInFile {
     public SongListInFile(Context context) {
         songList = new ArrayList<>();
         this.context = context;
-        initSongList = ((MainActivity)context).getInitSongList();
+        initSongList = new InitSongList(context);
     }
 
     public ArrayList<String> readTitleListInFile() {

@@ -2,10 +2,8 @@ package com.example.main.simplemp3_2.Fragment;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +35,7 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.m_listview, container, false);
+        View view = inflater.inflate(R.layout.listview_song, container, false);
         songView = view.findViewById(R.id.song_list);
         songView.setOnItemClickListener(this);
         return view;
@@ -46,7 +44,6 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onStart() {
         super.onStart();
-        Log.i("TAG", "onStart: ");
         songAdapter = new SongAdapter(context, getSongsInArtist());
         songView.setAdapter(songAdapter);
     }

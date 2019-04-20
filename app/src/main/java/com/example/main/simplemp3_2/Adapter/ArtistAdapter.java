@@ -79,7 +79,7 @@ public class ArtistAdapter extends BaseAdapter{
                     case R.id.addToList:
                         SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
                         selectPlayListFragmentDialog.addListToFile(getArtistSongs(artistList.get(postion)));
-                        selectPlayListFragmentDialog.show(((MainActivity)context).getFragmentManager(),null);
+                        selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
                         break;
                 }
                 return true;

@@ -3,17 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bottom_sheet_musicContorl"
     android:layout_width="match_parent"
-    android:layout_height="55dp"
+    android:layout_height="60dp"
     android:orientation="vertical"
+    android:background="@color/colorBackground"
     app:behavior_hideable="false"
     app:layout_behavior="@string/bottom_sheet_behavior">
 
-    <SeekBar
+    <ProgressBar
         android:id="@+id/mp3_seekbar"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:paddingEnd="0dp"
-        android:paddingStart="0dp" />
+        android:layout_height="2dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
             android:layout_width="55dp"
             android:layout_height="match_parent"
             android:padding="10dp"
-            android:src="@drawable/view_mp3_icon" />
+            android:src="@drawable/main_view_mp3_icon" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -42,9 +42,9 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:freezesText="true"
-                android:gravity="left|bottom"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:singleLine="true"
+                android:gravity="left|bottom"
                 android:text="SongTitle"
                 android:textSize="16sp" />
 
@@ -63,35 +63,21 @@
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            app:srcCompat="@drawable/btn_repeat_all" />
+            android:src="@drawable/main_btn_repeat_all"/>
 
         <ImageButton
             android:id="@+id/imgbtn_play"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            android:src="@drawable/btn_play" />
+            android:src="@drawable/main_btn_play" />
 
         <ImageButton
             android:id="@+id/imgbtn_next"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="#00000000"
-            android:src="@drawable/btn_play_next" />
+            android:src="@drawable/main_btn_play_next" />
     </LinearLayout>
 
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:paddingBottom="12dp"
-        android:paddingEnd="48dp"
-        android:paddingLeft="48dp"
-        android:paddingRight="48dp"
-        android:paddingStart="48dp"
-        android:paddingTop="12dp"
-        android:text="This is a demo for me to practice Bottom Sheet and I hope this demo could help you,too. ---- lijiankun24"
-        android:textColor="@android:color/black"
-        android:textSize="14sp" />
 </LinearLayout>

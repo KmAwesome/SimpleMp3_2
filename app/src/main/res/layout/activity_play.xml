@@ -17,28 +17,33 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
         android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/view_value"
             android:layout_width="40dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="15dp"
-            android:src="@drawable/view_value" />
+            android:src="@drawable/main_view_value" />
 
         <SeekBar
             android:id="@+id/seekbar_value_control"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginRight="15dp"
             android:layout_weight="1" />
+
     </LinearLayout>
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/background"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="horizontal"></LinearLayout>
+        android:layout_margin="10dp"
+        android:src="@drawable/main_view_play_logo"
+        android:background="@color/colorPlayBackground"
+        android:scaleType="center"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -48,24 +53,32 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/txv_song_title"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_height="30dp"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:freezesText="true"
                 android:gravity="center"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
                 android:text="SongTitile"
-                android:textSize="20sp"/>
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/txv_song_artist"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_height="30dp"
+                android:singleLine="true"
                 android:gravity="center"
                 android:text="SongArtist"/>
+
         </LinearLayout>
 
         <LinearLayout
@@ -98,9 +111,17 @@
                 android:text="time" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/txv_song_num"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="index / all"
+            android:textSize="12sp" />
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="70dp"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -110,7 +131,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
-                android:src="@drawable/btn_repeat_all" />
+                android:src="@drawable/main_btn_repeat_all" />
 
             <ImageButton
                 android:id="@+id/imgbtn_prev"
@@ -118,7 +139,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
-                android:src="@drawable/btn_play_prev" />
+                android:src="@drawable/main_btn_play_prev" />
 
             <ImageButton
                 android:id="@+id/imgbtn_play"
@@ -126,7 +147,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
-                android:src="@drawable/btn_play" />
+                android:src="@drawable/main_btn_play" />
 
             <ImageButton
                 android:id="@+id/imgbtn_next"
@@ -134,7 +155,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
-                android:src="@drawable/btn_play_next" />
+                android:src="@drawable/main_btn_play_next" />
 
             <ImageButton
                 android:id="@+id/imgbtn_favorite"
@@ -142,7 +163,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="#00000000"
-                android:src="@drawable/btn_favorite" />
+                android:src="@drawable/main_btn_favorite" />
 
         </LinearLayout>
 

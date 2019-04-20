@@ -14,7 +14,7 @@
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_margin="10dp"
-        app:srcCompat="@drawable/view_mp3_icon" />
+        app:srcCompat="@drawable/main_view_mp3_icon" />
 
     <LinearLayout
         android:layout_width="match_parent"

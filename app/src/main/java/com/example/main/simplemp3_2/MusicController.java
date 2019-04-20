@@ -8,7 +8,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
-
+import android.widget.Toast;
 import com.example.main.simplemp3_2.Service.MusicService;
 
 import java.util.ArrayList;
@@ -22,13 +22,16 @@ public class MusicController {
     private Context context;
     private MusicService musicService;
     private boolean isBind = false;
+    private Toast toast;
 
     public MusicController(Context context) {
         this.context = context;
         bindMusicService();
+        toast = new Toast(context);
     }
 
     public void bindMusicService() {
+        Log.i(TAG, "bindMusicService: " + isBind);
         Intent intent = new Intent(context, MusicService.class);
         context.bindService(intent, musicServiceConnection, context.BIND_AUTO_CREATE);
         context.startService(intent);
@@ -103,9 +106,18 @@ public class MusicController {
     public void setRepeatMode() {
         if (repeatMode.equals(REPEAT)) {
             repeatMode = REPEATONE;
+            toast.cancel();
+            toast = Toast.makeText(context, "單曲循環", Toast.LENGTH_SHORT);
+            toast.show();
         }else if (repeatMode.equals(REPEATONE)) {
+            toast.cancel();
+            toast = Toast.makeText(context, "隨機播放", Toast.LENGTH_SHORT);
+            toast.show();
             repeatMode = SHUFFLE;
         }else if (repeatMode.equals(SHUFFLE)) {
+            toast.cancel();
+            toast = Toast.makeText(context, "循環播放", Toast.LENGTH_SHORT);
+            toast.show();
             repeatMode = REPEAT;
         }
     }

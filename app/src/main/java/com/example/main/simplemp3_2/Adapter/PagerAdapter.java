@@ -15,9 +15,19 @@ import com.example.main.simplemp3_2.Fragment.ArtistFragment;
 import com.example.main.simplemp3_2.Fragment.FolderFragment;
 import com.example.main.simplemp3_2.Fragment.PlayFragment;
 import com.example.main.simplemp3_2.Fragment.PlayListFragment;
+import com.example.main.simplemp3_2.Fragment.SongFragment;
+import com.example.main.simplemp3_2.Fragment.SongStyleFragment;
+
+import java.util.ArrayList;
 
 public class PagerAdapter extends FragmentPagerAdapter {
     private int numOfTab;
+    private PlayFragment playFragment;
+    private ArtistFragment artistFragment;
+    private AlbumFragment albumFragment;
+    private FolderFragment folderFragment;
+    private PlayListFragment playListFragment;
+    private SongStyleFragment songStyleFragment;
 
     public PagerAdapter(FragmentManager fm, int numOfTab) {
         super(fm);
@@ -28,20 +38,23 @@ public class PagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                PlayFragment playFragment = new PlayFragment();
+                playFragment = new PlayFragment();
                 return playFragment;
             case 1:
-                ArtistFragment artistFragment = new ArtistFragment();
+                artistFragment = new ArtistFragment();
                 return artistFragment;
             case 2:
-                AlbumFragment albumFragment = new AlbumFragment();
+                albumFragment = new AlbumFragment();
                 return albumFragment;
             case 3:
-                FolderFragment folderFragment = new FolderFragment();
+                folderFragment = new FolderFragment();
                 return folderFragment;
             case 4:
-                PlayListFragment playListFragment = new PlayListFragment();
+                playListFragment = new PlayListFragment();
                 return playListFragment;
+            case 5:
+                songStyleFragment = new SongStyleFragment();
+                return songStyleFragment;
             default:
                 return null;
         }
@@ -60,6 +73,8 @@ public class PagerAdapter extends FragmentPagerAdapter {
                 return "資料夾";
             case 4:
                 return "播放列表";
+            case 5:
+                return "風格";
             default:
                 return null;
         }
@@ -70,5 +85,18 @@ public class PagerAdapter extends FragmentPagerAdapter {
         return numOfTab;
     }
 
-
+    public void refreshAllFragment() {
+        ArrayList<Fragment> fragments = new ArrayList<>();
+        fragments.add(playFragment);
+        fragments.add(artistFragment);
+        fragments.add(albumFragment);
+        fragments.add(folderFragment);
+        fragments.add(playListFragment);
+        fragments.add(songStyleFragment);
+        for (Fragment fragment : fragments) {
+            if (fragment != null) {
+                fragment.onStart();
+            }
+        }
+    }
 }
