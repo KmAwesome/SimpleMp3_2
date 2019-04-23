@@ -18,6 +18,13 @@ public class AddSongToListDialog extends DialogFragment {
     private ArrayList<Song> songList;
     private ArrayList<String> addedTitles;
     private String playListTitle;
+    private Context context;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
+    }
 
     @NonNull
     @Override
@@ -49,6 +56,9 @@ public class AddSongToListDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 SongListInFile songListInFile = new SongListInFile(getActivity());
                 songListInFile.writeSongListToFile(playListTitle, addedTitles);
+                if (context instanceof MainActivity) {
+                    ((MainActivity)context).refreshAllFragment();
+                }
             }
         });
 

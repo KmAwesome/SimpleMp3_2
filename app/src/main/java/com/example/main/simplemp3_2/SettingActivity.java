@@ -2,13 +2,10 @@ package com.example.main.simplemp3_2;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.support.v4.content.SharedPreferencesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -69,7 +66,7 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
                             initSongList.setFilterTime(filterTime[i]);
                             initSongList.saveData();
                             initSongList.initSongList();
-                            Toast.makeText(SettingActivity.this, "新增" + initSongList.getSongList().size() + "首歌曲至音樂庫中", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "新增" + initSongList.getSongList().size() + "首歌曲至音樂庫中", Toast.LENGTH_LONG).show();
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
                         }
@@ -87,6 +84,4 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 }

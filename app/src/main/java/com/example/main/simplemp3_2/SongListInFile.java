@@ -66,7 +66,6 @@ public class SongListInFile {
         if (songList != null) {
             songList.clear();
         }
-        initSongList.initSongList();
         ArrayList<Song> allSongList = initSongList.getSongList();
         ArrayList<String> songStringList = readSongListInFile(songTitle);
         for (int i=0; i<allSongList.size(); i++) {
@@ -90,7 +89,22 @@ public class SongListInFile {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(songTitle + ".bin",Context.MODE_PRIVATE));
             objectOutputStream.writeObject(songs);
             objectOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void removeSongInPlayList(String playListTitle, String songTitle) {
+        try {
+            ArrayList<String> songs = readSongListInFile(playListTitle);
+            for (int i=0; i<songs.size(); i++) {
+                if (songs.get(i).contains(songTitle)) {
+                    songs.remove(i);
+                }
+            }
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(playListTitle + ".bin",Context.MODE_PRIVATE));
+            objectOutputStream.writeObject(songs);
+            objectOutputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

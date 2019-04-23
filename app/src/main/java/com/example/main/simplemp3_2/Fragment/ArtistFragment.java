@@ -3,6 +3,7 @@ package com.example.main.simplemp3_2.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,20 +45,29 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        initSongList.initSongList();
-        songlist = initSongList.getSongList();
-        artistAdapter = new ArtistAdapter(context,getAristList(),songlist);
-        listView.setAdapter(artistAdapter);
-    }
-
-    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Bundle bundle = new Bundle();
         bundle.putSerializable("playSongList", getSongInArtistlist(i));
         songFragment.setArguments(bundle);
         getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
+    }
+
+    public ArrayList<Song> getSongInArtistlist(int position) {
+        artistSonglist = new ArrayList<>();
+        for (int i=0; i<songlist.size(); i++){
+            if (songlist.get(i).getArtist().equals(artistList.get(position))){
+                artistSonglist.add(songlist.get(i));
+            }
+        }
+        return artistSonglist;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        songlist = initSongList.getSongList();
+        artistAdapter = new ArtistAdapter(context,getAristList(), songlist);
+        listView.setAdapter(artistAdapter);
     }
 
     public ArrayList<String> getAristList() {
@@ -79,15 +89,4 @@ public class ArtistFragment extends Fragment implements AdapterView.OnItemClickL
         }
         return artistList;
     }
-
-    public ArrayList<Song> getSongInArtistlist(int position) {
-        artistSonglist = new ArrayList<>();
-        for (int i=0; i<songlist.size(); i++){
-            if (songlist.get(i).getArtist().equals(artistList.get(position))){
-                artistSonglist.add(songlist.get(i));
-            }
-        }
-        return artistSonglist;
-    }
-
 }

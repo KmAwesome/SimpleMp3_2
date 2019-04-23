@@ -73,7 +73,6 @@
             android:background="#00000000"
             android:src="@drawable/note_btn_close" />
 
-
     </LinearLayout>
 
 </LinearLayout>

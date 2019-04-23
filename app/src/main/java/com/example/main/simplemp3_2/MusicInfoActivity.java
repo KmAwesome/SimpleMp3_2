@@ -12,37 +12,16 @@ import android.widget.EditText;
 
 
 public class MusicInfoActivity extends AppCompatActivity {
+    private final static String TAG = "MusicInfoActivity";
     private EditText edtTitle, edtArtist, edtAlbum, edtStyle;
     private String songTitle, songArtist, songAlbum, songStyle,songPath;
     private Button btnOK, btnCancel;
-    private final static String TAG = "MusicInfoActivity";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_info);
         setTitle("編輯標籤");
-        edtTitle = findViewById(R.id.edtTitle);
-        edtArtist = findViewById(R.id.edtArtist);
-        edtAlbum = findViewById(R.id.edtAlbum);
-        edtStyle = findViewById(R.id.edtStyle);
-        btnOK = findViewById(R.id.btnOK);
-        btnCancel = findViewById(R.id.btnCancel);
-
-        btnOK.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveTag();
-                finish();
-            }
-        });
-
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
 
         Intent intent = this.getIntent();
         songTitle = intent.getStringExtra("Title");
@@ -51,10 +30,34 @@ public class MusicInfoActivity extends AppCompatActivity {
         songStyle = intent.getStringExtra("Style");
         songPath = intent.getStringExtra("Path");
 
+        edtTitle = findViewById(R.id.edtTitle);
         edtTitle.setText(songTitle);
+
+        edtArtist = findViewById(R.id.edtArtist);
         edtArtist.setText(songArtist);
+
+        edtAlbum = findViewById(R.id.edtAlbum);
         edtAlbum.setText(songAlbum);
+
+        edtStyle = findViewById(R.id.edtStyle);
         edtStyle.setText(songStyle);
+
+        btnOK = findViewById(R.id.btnOK);
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveTag();
+                finish();
+            }
+        });
+
+        btnCancel = findViewById(R.id.btnCancel);
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     private void saveTag() {

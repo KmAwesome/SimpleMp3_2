@@ -45,16 +45,9 @@ public class FolderAdapter extends BaseAdapter {
         return 0;
     }
 
-    class ViewHolder implements View.OnClickListener{
+    class ViewHolder {
         public TextView txv_folderName;
         public ImageButton imgbtn_setting;
-
-        @Override
-        public void onClick(View view) {
-            try {
-                showPopupMenu(view);
-            }catch (Exception e){e.printStackTrace();}
-        }
     }
 
     @Override
@@ -65,9 +58,16 @@ public class FolderAdapter extends BaseAdapter {
             converView = inflate_folder.inflate(R.layout.item_folder,null);
             viewHolder.imgbtn_setting = converView.findViewById(R.id.imgbtn_setting);
             viewHolder.txv_folderName = converView.findViewById(R.id.txv_folderName);
+
             viewHolder.imgbtn_setting.setTag(position);
-            viewHolder.imgbtn_setting.setOnClickListener(viewHolder);
+            viewHolder.imgbtn_setting.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showPopupMenu(view);
+                }
+            });
             converView.setTag(viewHolder);
+
         }else {
             viewHolder = (ViewHolder) converView.getTag();
         }

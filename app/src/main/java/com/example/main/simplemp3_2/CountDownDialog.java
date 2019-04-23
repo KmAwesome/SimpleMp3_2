@@ -29,11 +29,13 @@ public class CountDownDialog extends DialogFragment {
     private Context context;
     private static MenuItem menuItem;
     private String timeString;
+    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        musicController = new MusicController(context);
     }
 
     @NonNull
@@ -43,22 +45,7 @@ public class CountDownDialog extends DialogFragment {
         timeView = contentView.findViewById(R.id.time_view);
 
         timeSetSeekbar = contentView.findViewById(R.id.time_seekbar);
-        timeSetSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                timeView.setText(seekBar.getProgress() + " : 分鐘 ");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
+        timeSetSeekbar.setOnSeekBarChangeListener(timeSeekBar);
 
         if (timeIsCountDown) {
             timeView.setText("剩餘時間   " + timeString);
@@ -102,6 +89,23 @@ public class CountDownDialog extends DialogFragment {
                     }
                 });
     }
+
+    private SeekBar.OnSeekBarChangeListener timeSeekBar = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            timeView.setText(seekBar.getProgress() + " : 分鐘 ");
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    };
 
     Runnable timeCountDownRunnable = new Runnable() {
         @Override

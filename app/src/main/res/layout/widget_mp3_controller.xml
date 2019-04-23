@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_layout"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:background="@color/colorBackground"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/view_background"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txv_songTitle"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="10dp"
+                android:gravity="bottom|start"
+                android:singleLine="true"
+                android:text="SongTitle"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/txv_songArtist"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="10dp"
+                android:gravity="top|start"
+                android:text="SongAritst" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_playPrev"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorTransparent"
+            android:src="@drawable/widget_btn_prev" />
+
+        <ImageButton
+            android:id="@+id/btn_play"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorTransparent"
+            android:src="@drawable/widget_btn_play"
+           />
+
+        <ImageButton
+            android:id="@+id/btn_playNext"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorTransparent"
+            android:src="@drawable/widget_btn_next" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

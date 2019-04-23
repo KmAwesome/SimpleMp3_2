@@ -26,8 +26,20 @@
         </activity>
         <activity android:name=".MusicInfoActivity" />
         <activity android:name=".PlayActivity" />
-
         <service android:name=".Service.MusicService" />
+        <receiver android:name=".Mp3AppWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="playSong"/>
+                <action android:name="playPrev"/>
+                <action android:name="playNext"/>
+                <action android:name="repeatMode"/>
+                <action android:name="playList"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/example_appwidget_info"/>
+        </receiver>
     </application>
 
 </manifest>

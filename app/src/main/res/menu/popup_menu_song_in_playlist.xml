@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/removeFromList"
+        android:title="從列表中移除"/>
+    <item
+        android:id="@+id/play"
+        android:title="播放" />
+    <item
+        android:id="@+id/addToList"
+        android:title="新增至播放清單"/>
+
+    <item
+        android:id="@+id/musicInfo"
+        android:title="編輯標籤" />
+    <item
+        android:id="@+id/delete"
+        android:title="從本機移除" />
+</menu>

@@ -24,6 +24,7 @@ public class InitSongList {
     private Context context;
     private SharedPreferences sharedPreferences;
     private ArrayList<Song> songlist;
+
     public enum sortBy {
         sortByDefault, sortByDate
     }
@@ -92,6 +93,15 @@ public class InitSongList {
         }
     }
 
+    public void setSongList(ArrayList<Song> songs) {
+        songlist = songs;
+    }
+
+    public ArrayList<Song> getSongList() {
+        initSongList();
+        return songlist;
+    }
+
     public void sortByDefalut() {
         Collections.sort(songlist, new Comparator<Song>() {
             @Override
@@ -108,14 +118,6 @@ public class InitSongList {
                 return b.getDate().compareTo(a.getDate());
             }
         });
-    }
-
-    public void setSongList(ArrayList<Song> songs) {
-        songlist = songs;
-    }
-
-    public ArrayList<Song> getSongList() {
-        return songlist;
     }
 
     public void setSortBy(sortBy sortBy) {

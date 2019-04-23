@@ -22,7 +22,7 @@ import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
 import java.util.ArrayList;
 
-public class PlayListFragment extends Fragment implements AdapterView.OnItemClickListener,View.OnClickListener {
+public class PlayListFragment extends Fragment implements AdapterView.OnItemClickListener {
     private String TAG = "PlayListFragment";
     private Context context;
     private ListView playListView;
@@ -44,8 +44,36 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
         View view = inflater.inflate(R.layout.fragment_playlist,null);
         imgbtnAdd = view.findViewById(R.id.imgbtn_add);
         playListView = view.findViewById(R.id.playListView);
-        imgbtnAdd.setOnClickListener(this);
+
+        imgbtnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final EditText editText = new EditText(context);
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+                alertDialog.setView(editText);
+                alertDialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        songListInFile.writeTitleListToFile(editText.getText().toString());
+                        AddSongToListDialog addSongToListDialog = new AddSongToListDialog();
+                        addSongToListDialog.setPlayListTitle(editText.getText().toString());
+                        addSongToListDialog.show(getActivity().getSupportFragmentManager(), null);
+                        onStart();
+                    }
+                });
+
+                alertDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                alertDialog.create().show();
+            }
+        });
+
         playListView.setOnItemClickListener(this);
+
         return view;
     }
 
@@ -61,37 +89,10 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Bundle bundle = new Bundle();
         bundle.putSerializable("playSongList", songListInFile.getSongListInFile(songTitleList.get(i)));
+        bundle.putString("playListTitle", songTitleList.get(i));
         SongFragment songFragment = new SongFragment();
         songFragment.setArguments(bundle);
         getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
     }
 
-    @Override
-    public void onClick(View view) {
-        showAlertDialog();
-    }
-
-    private void showAlertDialog() {
-        final EditText editText = new EditText(context);
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-        alertDialog.setView(editText);
-        alertDialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                songListInFile.writeTitleListToFile(editText.getText().toString());
-                AddSongToListDialog addSongToListDialog = new AddSongToListDialog();
-                addSongToListDialog.setPlayListTitle(editText.getText().toString());
-                addSongToListDialog.show(getActivity().getSupportFragmentManager(), null);
-                onStart();
-            }
-        });
-
-        alertDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-
-            }
-        });
-        alertDialog.create().show();
-    }
 }

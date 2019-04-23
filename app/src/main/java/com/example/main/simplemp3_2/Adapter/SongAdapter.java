@@ -1,12 +1,10 @@
 package com.example.main.simplemp3_2.Adapter;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,7 +13,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.MusicController;
@@ -23,6 +20,7 @@ import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
 import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.MusicInfoActivity;
 import com.example.main.simplemp3_2.R;
+import com.example.main.simplemp3_2.SongListInFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -38,12 +36,24 @@ public class SongAdapter extends BaseAdapter {
     private ArrayList<Song> songlist;
     private int m_position;
     private InitSongList initSongList;
+    private MusicController musicController;
+    private String playListTitle;
 
-    public SongAdapter(Context c, ArrayList<Song> songlist) {
-        context = c;
-        songInf = LayoutInflater.from(c);
+    public SongAdapter(Context context, ArrayList<Song> songlist) {
+        this.context = context;
+        songInf = LayoutInflater.from(context);
         this.songlist = songlist;
-        initSongList = ((MainActivity)context).getInitSongList();
+        initSongList = new InitSongList(context);
+        musicController = ((MainActivity)context).getMusicController();
+    }
+
+    public SongAdapter(Context context, ArrayList<Song> songlist, String playListTitle) {
+        this.context = context;
+        songInf = LayoutInflater.from(context);
+        this.songlist = songlist;
+        initSongList = new InitSongList(context);
+        musicController = ((MainActivity)context).getMusicController();
+        this.playListTitle = playListTitle;
     }
 
     @Override
@@ -61,7 +71,7 @@ public class SongAdapter extends BaseAdapter {
         return 0;
     }
 
-    private class ViewHolder implements View.OnClickListener {
+    private class ViewHolder  {
         public ImageButton songSetting;
         public TextView songView, artistView, durationView;
 
@@ -71,52 +81,9 @@ public class SongAdapter extends BaseAdapter {
             artistView = m_artistView;
             durationView = m_durationView;
             songSetting = m_songSetting;
-            songSetting.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            m_position = (Integer) view.getTag();
-            Log.i(TAG, "SettingOnClick: " + m_position);
-            PopupMenu popupMenu = new PopupMenu(context, songSetting);
-            popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem menuItem) {
-                    switch (menuItem.getItemId()) {
-                        case R.id.musicInfo:
-                            musicInfo(m_position);
-                            break;
-                        case R.id.addToList:
-                            SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
-                            selectPlayListFragmentDialog.addSongToFile(songlist.get(m_position).getTitle());
-                            selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
-                            break;
-                        case R.id.delete:
-                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
-                            alertDialog.setTitle("確定刪除此歌曲?");
-                            alertDialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    deleteSong(songlist.get(m_position).getPath(), m_position);
-                                }
-                            });
-                            alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-
-                                }
-                            });
-                            alertDialog.show();
-                            break;
-                    }
-                    return true;
-                }
-            });
-            popupMenu.show();
+            songSetting.setOnClickListener(onClickListener);
         }
     }
-
 
     @Override
     public View getView(final int position, View converView, ViewGroup parent) {
@@ -158,16 +125,82 @@ public class SongAdapter extends BaseAdapter {
         context.startActivity(intent);
     }
 
+    View.OnClickListener onClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            m_position = (Integer) view.getTag();
+            PopupMenu popupMenu = new PopupMenu(context, view);
+            if (playListTitle != null) {
+                popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song_in_playlist, popupMenu.getMenu());
+            }else {
+                popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song, popupMenu.getMenu());
+            }
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    switch (menuItem.getItemId()) {
+                        case R.id.removeFromList:
+                            SongListInFile songListInFile = new SongListInFile(context);
+                            songListInFile.removeSongInPlayList(playListTitle, songlist.get(m_position).getTitle());
+                            songlist.remove(m_position);
+                            notifyDataSetChanged();
+                            ((MainActivity)context).refreshAllFragment();
+                            break;
+                        case R.id.musicInfo:
+                            musicInfo(m_position);
+                            break;
+                        case R.id.addToList:
+                            SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();
+                            selectPlayListFragmentDialog.addSongToFile(songlist.get(m_position).getTitle());
+                            selectPlayListFragmentDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
+                            break;
+                        case R.id.delete:
+                            AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+                            alertDialog.setTitle("確定刪除此歌曲?");
+                            alertDialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    deleteSong(songlist.get(m_position).getPath(), m_position);
+                                }
+                            });
+                            alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            });
+                            alertDialog.show();
+                            notifyDataSetChanged();
+                            ((MainActivity)context).refreshAllFragment();
+                            break;
+                    }
+                    return true;
+                }
+            });
+            popupMenu.show();
+        }
+    };
+
     private void deleteSong(String musicPath, int i) {
         File file = new File(musicPath);
         if (file.exists()) {
-            Log.i(TAG, "delete: " + musicPath);
             file.delete();
+
+            if (musicController.getSongPos() == i) {
+                musicController.pauseSong();
+            }
+
             songlist.remove(i);
-            initSongList.setSongList(songlist);
+
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
-            this.notifyDataSetChanged();
+
+            songlist = initSongList.getSongList();
+
+            musicController.setSongList(songlist);
+            if (musicController.getSongList().size() == 0) {
+                musicController.updateWidget();
+            }
         }
     }
 

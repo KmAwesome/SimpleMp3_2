@@ -22,13 +22,11 @@ public class SongStyleAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<String> styleNameList;
     private ArrayList<Song> songList;
-    private MusicController musicController;
 
     public SongStyleAdapter(Context context, ArrayList<String> styleNameList, ArrayList<Song> songList) {
         this.context = context;
         this.styleNameList = styleNameList;
         this.songList = songList;
-        musicController = new MusicController(context);
     }
 
     @Override
@@ -104,6 +102,7 @@ public class SongStyleAdapter extends BaseAdapter {
             }
         }
         if (mSongs.size() > 0) {
+            MusicController musicController = ((MainActivity)context).getMusicController();
             musicController.setSongList(mSongs);
             musicController.setSongPos(0);
             musicController.playSong();

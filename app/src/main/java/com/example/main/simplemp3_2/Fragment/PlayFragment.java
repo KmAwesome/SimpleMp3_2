@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,11 +21,11 @@ import java.util.ArrayList;
 
 public class PlayFragment extends Fragment implements AdapterView.OnItemClickListener {
     final static String TAG = "PlayFragment";
-    private ListView songView;
-    private SongAdapter songAdt;
+    private ListView listView;
     private ArrayList<Song> songlist;
     private Context context;
     private InitSongList initSongList;
+    private MusicController musicController;
 
     @Override
     public void onAttach(Context context) {
@@ -36,32 +37,36 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initSongList = new InitSongList(context);
-        songlist = initSongList.getSongList();
-        songAdt = new SongAdapter(context, songlist);
+        musicController = new MusicController(context);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.listview_song, container, false);
-        songView = view.findViewById(R.id.song_list);
-        songView.setAdapter(songAdt);
-        songView.setOnItemClickListener(this);
+        listView = view.findViewById(R.id.song_list);
+        listView.setOnItemClickListener(this);
         return view;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        musicController.setSongList(songlist);
+        musicController.setSongPos(i);
+        musicController.playSong();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        initSongList.initSongList();
-        songAdt.notifyDataSetChanged();
+        songlist = initSongList.getSongList();
+        SongAdapter songAdapter = new SongAdapter(context, songlist);
+        listView.setAdapter(songAdapter);
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        MusicController musicController = ((MainActivity)context).getMusicController();
-        musicController.setSongList(songlist);
-        musicController.setSongPos(i);
-        musicController.playSong();
+    public void onDetach() {
+        musicController.unbindMusicService();
+        super.onDetach();
     }
 }

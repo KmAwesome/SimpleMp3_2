@@ -96,7 +96,11 @@ public class MusicController {
     }
 
     public int getSongPlayingPos() {
-        return musicService.getPosn();
+        if (getSongList().size() > 0) {
+            return musicService.getPosn();
+        }else {
+            return 0;
+        }
     }
 
     public int getSongDuration() {
@@ -107,19 +111,27 @@ public class MusicController {
         if (repeatMode.equals(REPEAT)) {
             repeatMode = REPEATONE;
             toast.cancel();
-            toast = Toast.makeText(context, "單曲循環", Toast.LENGTH_SHORT);
+            toast = Toast.makeText(context.getApplicationContext(), "單曲循環", Toast.LENGTH_SHORT);
             toast.show();
         }else if (repeatMode.equals(REPEATONE)) {
             toast.cancel();
-            toast = Toast.makeText(context, "隨機播放", Toast.LENGTH_SHORT);
+            toast = Toast.makeText(context.getApplicationContext(), "隨機播放", Toast.LENGTH_SHORT);
             toast.show();
             repeatMode = SHUFFLE;
         }else if (repeatMode.equals(SHUFFLE)) {
             toast.cancel();
-            toast = Toast.makeText(context, "循環播放", Toast.LENGTH_SHORT);
+            toast = Toast.makeText(context.getApplicationContext(), "循環播放", Toast.LENGTH_SHORT);
             toast.show();
             repeatMode = REPEAT;
         }
+    }
+
+    public void setSongListShuffle() {
+        musicService.setMusicShuffle();
+    }
+
+    public void updateWidget() {
+        musicService.updateWidget(null);
     }
 
     public void unbindMusicService() {

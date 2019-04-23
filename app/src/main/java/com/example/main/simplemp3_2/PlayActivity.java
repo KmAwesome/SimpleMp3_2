@@ -27,18 +27,17 @@ public class PlayActivity extends AppCompatActivity {
     private final String TAG = "PlayActivity";
     private MusicController musicController;
     private AudioManager audioManager;
-    private static Handler musicHandler = new Handler();
-    private IntentFilter updateUIfilter;
     private ImageButton btnPlay, btnPlayNext, btnPlayPrev, btnRepeatMode, btnFavorite;
     private TextView txvSongTitle, txvSongArtist, txvPlayingTime, txvSongDuration, txvSongNum;
     private SeekBar seekBarSongProgress, seekBarValueControl;
     private int currentVolume;
+    private static Handler musicHandler = new Handler();
 
     private void initUpdateUiReceiver() {
-        updateUIfilter = new IntentFilter();
-        updateUIfilter.addAction(PLAY);
-        updateUIfilter.addAction(PAUSE);
-        registerReceiver(UIbroadcastReceiver, updateUIfilter);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(PLAY);
+        intentFilter.addAction(PAUSE);
+        registerReceiver(UIbroadcastReceiver, intentFilter);
     }
 
     BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
@@ -47,13 +46,16 @@ public class PlayActivity extends AppCompatActivity {
             if (intent.getAction().equals(PAUSE)) {
                 btnPlay.setImageResource(R.drawable.main_btn_play);
             }
+
             String title = intent.getStringExtra("songTitle");
             if (!txvSongTitle.getText().equals(title)) {
                 txvSongTitle.setText(intent.getStringExtra("songTitle"));
             }
             txvSongArtist.setText(intent.getStringExtra("songArtist"));
+
             seekBarSongProgress.setMax(musicController.getSongDuration());
             seekBarSongProgress.setProgress(musicController.getSongPlayingPos());
+
             Song song = musicController.getSongList().get(musicController.getSongPos());
             txvSongDuration.setText(String.format("%d:%02d", song.getDuration() / 60000, song.getDuration() / 1000 % 60));
             txvSongNum.setText(String.format("%d / %d", musicController.getSongPos() + 1, musicController.getSongList().size()));
@@ -75,26 +77,6 @@ public class PlayActivity extends AppCompatActivity {
         }
     };
 
-    private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            txvPlayingTime.setText(String.format("%d:%02d", seekBar.getProgress() / 60000, seekBar.getProgress() / 1000 % 60));
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-            musicHandler.removeCallbacks(mp3StartRunable);
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            if (musicController.getSongList().size() > 0) {
-                musicController.setSongPlayingPos(seekBar.getProgress());
-                musicHandler.post(mp3StartRunable);
-            }
-        }
-    };
-
     private void updateRepeatImgButtonView() {
         if (repeatMode.equals(REPEAT)) {
             btnRepeatMode.setImageResource(R.drawable.main_btn_repeat_all);
@@ -113,15 +95,10 @@ public class PlayActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
+
         musicController = new MusicController(this);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        initUpdateUiReceiver();
-        musicHandler.post(mp3StartRunable);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
         btnPlay = findViewById(R.id.imgbtn_play);
         btnPlayNext = findViewById(R.id.imgbtn_next);
         btnPlayPrev = findViewById(R.id.imgbtn_prev);
@@ -142,13 +119,77 @@ public class PlayActivity extends AppCompatActivity {
         txvSongTitle.setSelected(true);
 
         seekBarSongProgress = findViewById(R.id.seekbar_song_progress);
-        seekBarSongProgress.setOnSeekBarChangeListener(seekBarChangeListener);
+        seekBarSongProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                txvPlayingTime.setText(String.format("%d:%02d", seekBar.getProgress() / 60000, seekBar.getProgress() / 1000 % 60));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                musicHandler.removeCallbacks(mp3StartRunable);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (musicController.getSongList().size() > 0) {
+                    musicController.setSongPlayingPos(seekBar.getProgress());
+                    musicHandler.post(mp3StartRunable);
+                }
+            }
+        });
 
         currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         seekBarValueControl = findViewById(R.id.seekbar_value_control);
         seekBarValueControl.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
         seekBarValueControl.setProgress(currentVolume);
-        seekBarValueControl.setOnSeekBarChangeListener(valueControlListener);
+        seekBarValueControl.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, seekBar.getProgress(), 0);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        initUpdateUiReceiver();
+
+        musicHandler.post(mp3StartRunable);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            unregisterReceiver(UIbroadcastReceiver);
+            musicHandler.removeCallbacks(mp3StartRunable);
+            musicController.unbindMusicService();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     View.OnClickListener controlListener = new View.OnClickListener() {
@@ -183,42 +224,4 @@ public class PlayActivity extends AppCompatActivity {
         }
     };
 
-    SeekBar.OnSeekBarChangeListener valueControlListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, seekBar.getProgress(), 0);
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-
-        }
-    };
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try {
-            unregisterReceiver(UIbroadcastReceiver);
-            musicHandler.removeCallbacks(mp3StartRunable);
-            musicController.unbindMusicService();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

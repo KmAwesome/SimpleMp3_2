@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,11 +19,13 @@ import com.example.main.simplemp3_2.Adapter.SongAdapter;
 import java.util.ArrayList;
 
 public class SongFragment extends Fragment implements AdapterView.OnItemClickListener{
+    private final String TAG = "SongFragment";
     private Context context;
     private ListView songView;
     public SongAdapter songAdapter;
     private ArrayList<Song> songlist;
     private ArrayList<Song> mSongs;
+    private String playListTitle;
 
     @Override
     public void onAttach(Context context) {
@@ -30,6 +33,7 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
         this.context = context;
         songlist = new ArrayList<>();
         songlist = (ArrayList<Song>) getArguments().get("playSongList");
+        playListTitle = (String) getArguments().get("playListTitle");
     }
 
     @Nullable
@@ -44,16 +48,13 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onStart() {
         super.onStart();
-        songAdapter = new SongAdapter(context, getSongsInArtist());
-        songView.setAdapter(songAdapter);
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        MusicController musicController = ((MainActivity)context).getMusicController();
-        musicController.setSongList(mSongs);
-        musicController.setSongPos(i);
-        musicController.playSong();
+        if (playListTitle != null) {
+            songAdapter = new SongAdapter(context, getSongsInArtist(), playListTitle);
+            songView.setAdapter(songAdapter);
+        }else {
+            songAdapter = new SongAdapter(context, getSongsInArtist());
+            songView.setAdapter(songAdapter);
+        }
     }
 
     private ArrayList<Song> getSongsInArtist() {
@@ -74,6 +75,14 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
             }
         }
         return mSongs;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        MusicController musicController = ((MainActivity)context).getMusicController();
+        musicController.setSongList(mSongs);
+        musicController.setSongPos(i);
+        musicController.playSong();
     }
 
 }

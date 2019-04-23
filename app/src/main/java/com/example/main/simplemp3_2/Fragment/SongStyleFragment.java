@@ -33,7 +33,6 @@ public class SongStyleFragment extends Fragment {
         this.context = context;
         initSongList = new InitSongList(context);
         songList = new ArrayList<>();
-        songList = initSongList.getSongList();
     }
 
     @Nullable
@@ -43,26 +42,6 @@ public class SongStyleFragment extends Fragment {
         songListView = view.findViewById(R.id.song_list);
         songListView.setOnItemClickListener(onItemClickListener);
         return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        initSongList.initSongList();
-        songList = initSongList.getSongList();
-        SongStyleAdapter songStyleAdapter = new SongStyleAdapter(context, getStyleNameList(), songList);
-        songListView.setAdapter(songStyleAdapter);
-    }
-
-    private ArrayList<String> getStyleNameList() {
-        songStyleList = new ArrayList<>();
-        for (int i=0; i<songList.size(); i++) {
-            String styleName = songList.get(i).getStyle();
-            if (!songStyleList.contains(styleName)) {
-                songStyleList.add(styleName);
-            }
-        }
-        return songStyleList;
     }
 
     AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener() {
@@ -87,6 +66,23 @@ public class SongStyleFragment extends Fragment {
         return songs;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        songList = initSongList.getSongList();
+        SongStyleAdapter songStyleAdapter = new SongStyleAdapter(context, getStyleNameList(), songList);
+        songListView.setAdapter(songStyleAdapter);
+    }
 
+    private ArrayList<String> getStyleNameList() {
+        songStyleList = new ArrayList<>();
+        for (int i=0; i<songList.size(); i++) {
+            String styleName = songList.get(i).getStyle();
+            if (!songStyleList.contains(styleName)) {
+                songStyleList.add(styleName);
+            }
+        }
+        return songStyleList;
+    }
 
 }

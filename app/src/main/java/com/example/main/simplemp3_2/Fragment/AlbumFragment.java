@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 
 public class AlbumFragment extends Fragment implements AdapterView.OnItemClickListener {
     private InitSongList initSongList;
-    private SongFragment songFragment;
     private Context context;
     private ListView listView;
     private ArrayList<Song> songList;
@@ -28,7 +28,6 @@ public class AlbumFragment extends Fragment implements AdapterView.OnItemClickLi
         super.onAttach(context);
         this.context = context;
         initSongList = new InitSongList(context);
-        songFragment = new SongFragment();
         songList = new ArrayList<>();
     }
 
@@ -42,22 +41,12 @@ public class AlbumFragment extends Fragment implements AdapterView.OnItemClickLi
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        initSongList.initSongList();
-        songList = initSongList.getSongList();
-        AlbumAdapter albumAdapter = new AlbumAdapter(context, getAlbumList(), songList);
-        listView.setAdapter(albumAdapter);
-    }
-
-    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        try {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("playSongList", getSongsInAlbumName(i));
-            songFragment.setArguments(bundle);
-            getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
-        }catch (Exception e) {e.printStackTrace();}
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("playSongList", getSongsInAlbumName(i));
+        SongFragment songFragment = new SongFragment();
+        songFragment.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
     }
 
     private ArrayList<String> getAlbumList() {
@@ -81,4 +70,11 @@ public class AlbumFragment extends Fragment implements AdapterView.OnItemClickLi
         return songs;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        songList = initSongList.getSongList();
+        AlbumAdapter albumAdapter = new AlbumAdapter(context, getAlbumList(), songList);
+        listView.setAdapter(albumAdapter);
+    }
 }

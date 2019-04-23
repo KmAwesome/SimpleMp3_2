@@ -10,6 +10,8 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -24,50 +26,47 @@ import android.widget.RemoteViews;
 
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Mp3AppWidgetProvider;
 import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Random;
 
-public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    public MusicControlNotification musicControlNotification;
-    private InitSongList initSongList;
+
+public class MusicService extends Service {
     private final String TAG = "MusicService";
+
     public final IBinder musicBind = new MusicBinder();
+
     public final static String PLAY = "PLAY";
     public final static String PAUSE = "PAUSE";
     public final static String REPEAT = "Repeat";
     public final static String REPEATONE = "RepeatOne";
     public final static String SHUFFLE = "Shuffle";
     public static String repeatMode;
-    private AudioManager audioManager;
+
+    private static boolean isPause;
+
+    private MusicControlNotification musicControlNotification;
+
+    private InitSongList initSongList;
     private MediaPlayer player;
-    private Random rand;
     private Intent updateUiIntent;
     private ArrayList<Song> songlist;
     private ArrayList<Integer> shuffledList;
-    public Song playItemSong;
+    private Song playItemSong;
     private int songPosn;
     private int shuffledIndex;
-    private static boolean isPause;
+
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
-            updateUi();
+            updateActivityUi();
             return MusicService.this;
-        }
-    }
-
-    public void updateUi() {
-        if (songlist.size() > 0) {
-            updateUiIntent.setAction(PLAY);
-            updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
-            updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
-            sendBroadcast(updateUiIntent);
         }
     }
 
@@ -82,46 +81,51 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        mediaPlayer.start();
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        mediaPlayer.reset();
-        playNext();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        mediaPlayer.reset();
-        mediaPlayer.start();
-        return false;
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
+
         initSongList = new InitSongList(this);
         songlist = initSongList.getSongList();
-        musicControlNotification = new MusicControlNotification(this);
-        NoisyAudioStreamReceiver noisyAudioStreamReceiver = new NoisyAudioStreamReceiver();
-        IntentFilter headsetFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        registerReceiver(noisyAudioStreamReceiver, headsetFilter);
         updateUiIntent = new Intent();
-        initMusicPlayer();
-        getAudioFocus();
-        setPlayListToShuffle();
+
         setRepeatMode(REPEAT);
-    }
-    
-    private void initMusicPlayer() {
+
+        musicControlNotification = new MusicControlNotification(this);
+
+        IntentFilter headsetFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        registerReceiver(noisyReceiver, headsetFilter);
+
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audioManager.requestAudioFocus(onAudioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
         player = new MediaPlayer();
         player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setOnPreparedListener(this);
-        player.setOnCompletionListener(this);
-        player.setOnErrorListener(this);
+
+        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mediaPlayer.start();
+            }
+        });
+
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mediaPlayer.reset();
+                playNext();
+            }
+        });
+
+        player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                mediaPlayer.reset();
+                mediaPlayer.start();
+                return false;
+            }
+        });
+
         if (songlist.size() > 0 ) {
             try {
                 playItemSong = songlist.get(songPosn);
@@ -132,24 +136,36 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 e.printStackTrace();
             }
         }
+
+        sharedPreferences = getSharedPreferences("songInfo", MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+        editor.putInt("numOfSongs", songlist.size());
+        editor.apply();
     }
 
-    public void getAudioFocus() {
-        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+    @Override
+    public void onDestroy() {
+        stopSelf();
     }
 
-    AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+    BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            pausePlayer();
+        }
+    };
+
+    AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
-                case AudioManager.AUDIOFOCUS_GAIN :
+                case AudioManager.AUDIOFOCUS_GAIN:
                     Log.i(TAG, "AUDIOFOCUS_GAIN" + isPause);
                     if (getPosn() != 0 && !isPause) {
                         go();
                     }
                     break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT :
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                     Log.i(TAG, "AUDIOFOCUS_LOSS_TRANSIENT" + isPause);
                     if (getPosn() != 0 && !isPause) {
                         pausePlayer();
@@ -160,13 +176,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     };
 
-    private void setPlayListToShuffle() {
-        shuffledIndex = 0;
-        shuffledList = new ArrayList<>();
-        for (int i=0; i<songlist.size(); i++) {
-            shuffledList.add(i);
+    public void updateActivityUi() {
+        if (songlist.size() > 0) {
+            updateUiIntent.setAction(PLAY);
+            updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
+            updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
+            sendBroadcast(updateUiIntent);
         }
-        Collections.shuffle(shuffledList);
     }
 
     public void playSong() {
@@ -178,9 +194,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
                 player.setDataSource(getApplicationContext(), trackUri);
                 player.prepareAsync();
-                updateUi();
-                musicControlNotification.createNotification();
+                updateActivityUi();
                 musicControlNotification.updateNotificationUI("Play");
+                updateWidget("playSong");
                 isPause = false;
             }
         } catch (Exception e) {
@@ -191,8 +207,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void go() {
         if (songlist.size() > 0) {
             player.start();
-            musicControlNotification.createNotification();
             musicControlNotification.updateNotificationUI("Play");
+            updateWidget("playSong");
             isPause = false;
         }
     }
@@ -200,15 +216,42 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void pausePlayer() {
         if (songlist.size() > 0) {
             player.pause();
-            musicControlNotification.createNotification();
-            musicControlNotification.updateNotificationUI("Pause");
             updateUiIntent.setAction(PAUSE);
             sendBroadcast(updateUiIntent);
+            musicControlNotification.updateNotificationUI("Pause");
+            updateWidget("pauseSong");
             isPause = true;
         }
     }
 
+    public void updateWidget(String action) {
+        Intent intent = new Intent(this, Mp3AppWidgetProvider.class);
+        intent.setAction(action);
+
+        if (songlist.size() > 0) {
+            Song song = songlist.get(getSongPos());
+            editor.putInt("numOfSongs", songlist.size());
+            editor.putString("songTitle", song.getTitle());
+            editor.putString("songArtist", song.getArtist());
+        }else {
+            editor.putInt("numOfSongs", songlist.size());
+            editor.putString("songTitle", "點此新增歌曲");
+            editor.putString("songArtist", "");
+        }
+
+        if (isPlaying()) {
+            editor.putBoolean("isPlay", true);
+        }else {
+            editor.putBoolean("isPlay", false);
+        }
+        editor.apply();
+        sendBroadcast(intent);
+    }
+
     public void playPrev() {
+        if (songlist.size() == 0) {
+            return;
+        }
         if (songPosn == 0) {
             songPosn = songlist.size() - 1;
         } else if (songPosn > 0) {
@@ -218,6 +261,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void playNext() {
+        if (songlist.size() == 0) {
+            return;
+        }
         switch (repeatMode) {
             case REPEAT:
                 songPosn++;
@@ -285,17 +331,23 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 break;
             case SHUFFLE:
                 repeatMode = SHUFFLE;
+                setMusicShuffle();
                 break;
         }
     }
 
-    @Override
-    public void onDestroy() {
-        stopSelf();
+    public void setMusicShuffle() {
+        shuffledIndex = 0;
+        shuffledList = new ArrayList<>();
+        for (int i=0; i<songlist.size(); i++) {
+            shuffledList.add(i);
+        }
+        Collections.shuffle(shuffledList);
     }
 
     public class MusicControlNotification extends BroadcastReceiver {
         private final String TAG = "mNotification";
+
         public RemoteViews mRemoteViews;
         public NotificationManager mNotificationManager;
         public Notification mBuilder;
@@ -306,44 +358,34 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         public MusicControlNotification(Context context) {
             this.context = context.getApplicationContext();
-            notiticationFilter = new IntentFilter();
-            notiticationFilter.addAction("closeNotification");
-            notiticationFilter.addAction("playNotification");
-            notiticationFilter.addAction("nextNotification");
-            notiticationFilter.addAction("prevNotification");
-            notiticationFilter.addAction("pauseNotification");
 
             mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.notification_mp3_control);
-            mRemoteViews.setImageViewResource(R.id.viewLogo, R.drawable.note_view_logo);
-            mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
-            mRemoteViews.setImageViewResource(R.id.noteNext, R.drawable.note_btn_next);
-            mRemoteViews.setImageViewResource(R.id.notePrev, R.drawable.note_btn_prev);
-            mRemoteViews.setImageViewResource(R.id.noteClose, R.drawable.note_btn_close);
-
             mNotificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 
             Intent intent = new Intent(context, MainActivity.class);
             pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+            Intent playIntent = new Intent("playSong");
+            PendingIntent pendingPlay = PendingIntent.getBroadcast(context, 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mRemoteViews.setOnClickPendingIntent(R.id.notePlay, pendingPlay);
+
+            Intent prevIntent = new Intent("playPrev");
+            PendingIntent pendingPrev = PendingIntent.getBroadcast(context, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mRemoteViews.setOnClickPendingIntent(R.id.notePrev, pendingPrev);
+
+            Intent nextIntent = new Intent("playNext");
+            PendingIntent pendingNext = PendingIntent.getBroadcast(context, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            mRemoteViews.setOnClickPendingIntent(R.id.noteNext, pendingNext);
+
             Intent closeIntent = new Intent("closeNotification");
             PendingIntent pendingClose = PendingIntent.getBroadcast(context, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             mRemoteViews.setOnClickPendingIntent(R.id.noteClose, pendingClose);
 
-            Intent prevIntent = new Intent("prevNotification");
-            PendingIntent pendingPrev = PendingIntent.getBroadcast(context, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mRemoteViews.setOnClickPendingIntent(R.id.notePrev, pendingPrev);
-
-            Intent nextIntent = new Intent("nextNotification");
-            PendingIntent pendingNext = PendingIntent.getBroadcast(context, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mRemoteViews.setOnClickPendingIntent(R.id.noteNext, pendingNext);
-
-            Intent mpauseIntent = new Intent("pauseNotification");
-            PendingIntent pendingPause = PendingIntent.getBroadcast(context, 0, mpauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mRemoteViews.setOnClickPendingIntent(R.id.notePlay, pendingPause);
-
-            Intent mplayIntent = new Intent("playNotification");
-            PendingIntent pendingPlay = PendingIntent.getBroadcast(context, 0, mplayIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            mRemoteViews.setOnClickPendingIntent(R.id.notePlay, pendingPlay);
+            notiticationFilter = new IntentFilter();
+            notiticationFilter.addAction("playSong");
+            notiticationFilter.addAction("playPrev");
+            notiticationFilter.addAction("playNext");
+            notiticationFilter.addAction("closeNotification");
 
             context.registerReceiver(this, notiticationFilter);
         }
@@ -355,17 +397,31 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 stopForeground(true);
                 mBuilder = null;
                 return;
-            } else if (intent.getAction().equals("playNotification")) {
-                if (isPlaying()) {
+            } else if (intent.getAction().equals("playSong")) {
+                if (getPosn() == 0) {
+                    playSong();
+                }else if (isPlaying()) {
                     pausePlayer();
                 }else {
                     go();
                 }
-            } else if (intent.getAction().equals("nextNotification")) {
+            }else if (intent.getAction().equals("playNext")) {
                 playNext();
-            } else if (intent.getAction().equals("prevNotification")) {
+            } else if (intent.getAction().equals("playPrev")) {
                 playPrev();
             }
+        }
+
+        public void updateNotificationUI(String tag) {
+            createNotification();
+            if (tag.equals("Play")) {
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_pause);
+            }else if (tag.equals("Pause")) {
+                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
+            }
+            mRemoteViews.setTextViewText(R.id.noteTitle, playItemSong.getTitle());
+            mRemoteViews.setTextViewText(R.id.noteArtist, playItemSong.getArtist());
+            mNotificationManager.notify(1, mBuilder);
         }
 
         public void createNotification() {
@@ -398,26 +454,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 }
                 mBuilder.flags = Notification.FLAG_NO_CLEAR;
                 startForeground(1, mBuilder);
-            }
-        }
-
-        public void updateNotificationUI(String tag) {
-            if (tag.equals("Play")) {
-                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_pause);
-            }else if (tag.equals("Pause")) {
-                mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
-            }
-            mRemoteViews.setTextViewText(R.id.noteTitle, playItemSong.getTitle());
-            mRemoteViews.setTextViewText(R.id.noteArtist, playItemSong.getArtist());
-            mNotificationManager.notify(1, mBuilder);
-        }
-    }
-
-    private class NoisyAudioStreamReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-                pausePlayer();
             }
         }
     }

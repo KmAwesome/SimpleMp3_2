@@ -26,14 +26,14 @@ public class PlayListAdapter extends BaseAdapter {
     private SongListInFile songListInFile;
     private Context context;
     private ArrayList<String> songTitleList;
-    private TextView txvPlayListTitle;
+    private TextView txvPlayListTitle, txvPlayListNum;
     private ImageButton imgbtnSetting;
 
     public PlayListAdapter(Context context, ArrayList<String> songTitleList) {
         this.context = context;
         this.songTitleList = songTitleList;
         musicController =  ((MainActivity)context).getMusicController();
-        songListInFile =  ((MainActivity)context).getSongListInFile();
+        songListInFile =  new SongListInFile(context);
     }
 
     @Override
@@ -53,21 +53,23 @@ public class PlayListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        view = LayoutInflater.from(context).inflate(R.layout.item_playlist, null);
+        view = LayoutInflater.from(context).inflate(R.layout.item_playlist, null, false);
         txvPlayListTitle = view.findViewById(R.id.txv_playlist);
-        imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
-        imgbtnSetting.setOnClickListener(showPopUpMenu);
-        imgbtnSetting.setTag(i);
         txvPlayListTitle.setText(songTitleList.get(i));
+
+        txvPlayListNum = view.findViewById(R.id.txv_playlist_num);
+        txvPlayListNum.setText("曲目  " + songListInFile.getSongListInFile(songTitleList.get(i)).size());
+
+        imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
+        imgbtnSetting.setTag(i);
+        imgbtnSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPopupMenu(view);
+            }
+        });
         return view;
     }
-
-    View.OnClickListener showPopUpMenu = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            showPopupMenu(view);
-        }
-    };
 
     private void showPopupMenu(View view){
         final int postion = (int)view.getTag();
