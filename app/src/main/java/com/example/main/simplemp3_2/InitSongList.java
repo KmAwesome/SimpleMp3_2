@@ -26,7 +26,7 @@ public class InitSongList {
     private ArrayList<Song> songlist;
 
     public enum sortBy {
-        sortByDefault, sortByDate
+        sortByDefault, sortByDate;
     }
 
     public InitSongList(Context context) {
@@ -102,6 +102,11 @@ public class InitSongList {
         return songlist;
     }
 
+    public void setSortBy(sortBy sortBy) {
+        Log.i(TAG, "Set sort by" + sortBy.ordinal());
+        this.sortSelect = sortBy.ordinal();
+    }
+
     public void sortByDefalut() {
         Collections.sort(songlist, new Comparator<Song>() {
             @Override
@@ -118,11 +123,6 @@ public class InitSongList {
                 return b.getDate().compareTo(a.getDate());
             }
         });
-    }
-
-    public void setSortBy(sortBy sortBy) {
-        Log.i(TAG, "initSongList: " + sortBy.ordinal());
-        this.sortSelect = sortBy.ordinal();
     }
 
     public void setFilterTime(int filterTime) {

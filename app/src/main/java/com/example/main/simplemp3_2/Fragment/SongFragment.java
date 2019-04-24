@@ -81,7 +81,7 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         MusicController musicController = ((MainActivity)context).getMusicController();
         musicController.setSongList(mSongs);
-        musicController.setSongPos(i);
+        musicController.setSongIndex(i);
         musicController.playSong();
     }
 

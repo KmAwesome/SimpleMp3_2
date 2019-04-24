@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -29,14 +30,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static com.example.main.simplemp3_2.Service.MusicService.PAUSE;
-import static com.example.main.simplemp3_2.Service.MusicService.PLAY;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
-import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
-import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG  = "MainActivity";
@@ -45,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
     private static Handler musicHandler = new Handler();
-    private IntentFilter updateUIfilter;
     private PagerAdapter pagerAdapter;
     private DrawerLayout drawerLayout;
     private RelativeLayout relativeLayout;
@@ -60,23 +58,24 @@ public class MainActivity extends AppCompatActivity {
     private CountDownDialog countDownDialog;
 
     private void initUpdateUiReceiver() {
-        updateUIfilter = new IntentFilter();
-        updateUIfilter.addAction(PLAY);
-        updateUIfilter.addAction(PAUSE);
-        registerReceiver(updateUI, updateUIfilter);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_PLAY);
+        intentFilter.addAction(ACTION_PAUSE);
+        registerReceiver(UIbroadcastReceiver, intentFilter);
     }
 
-    BroadcastReceiver updateUI = new BroadcastReceiver() {
+    BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(PAUSE)) {
+            if (intent.getAction().equals(ACTION_PAUSE)) {
                 btnPlaySong.setImageResource(R.drawable.main_btn_play);
-            }else if (intent.getAction().equals(PLAY)) {
-                mp3ProgressBar.setMax(musicController.getSongDuration());
-                mp3ProgressBar.setProgress(musicController.getSongPlayingPos());
-                txvSongTitle.setText(intent.getStringExtra("songTitle"));
-                txvSongArtist.setText(intent.getStringExtra("songArtist"));
+            }else if (intent.getAction().equals(ACTION_PLAY)) {
+                btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
+            mp3ProgressBar.setMax(musicController.getSongDuration());
+            mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
+            txvSongTitle.setText(intent.getStringExtra("songTitle"));
+            txvSongArtist.setText(intent.getStringExtra("songArtist"));
             musicHandler.post(mp3Start);
         }
     };
@@ -86,23 +85,12 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             if (musicController.isPlaying()) {
                 mp3ProgressBar.setMax(musicController.getSongDuration());
-                mp3ProgressBar.setProgress(musicController.getSongPlayingPos());
+                mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
                 btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
-            updateRepeatImgButtonView();
             musicHandler.postDelayed(mp3Start,50);
         }
     };
-
-    private void updateRepeatImgButtonView() {
-        if (repeatMode.equals(REPEAT)) {
-            btnRepeat.setImageResource(R.drawable.main_btn_repeat_all);
-        }else if (repeatMode.equals(REPEATONE)) {
-            btnRepeat.setImageResource(R.drawable.main_btn_repeat_one);
-        }else if (repeatMode.equals(SHUFFLE)) {
-            btnRepeat.setImageResource(R.drawable.main_btn_repeat_shffle);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,15 +102,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        musicController.setSongListShuffle();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (updateUIfilter != null) {
-            unregisterReceiver(updateUI);
-        }
+
+        unregisterReceiver(UIbroadcastReceiver);
+
         if (musicController != null) {
             musicHandler.removeCallbacks(mp3Start);
             musicController.unbindMusicService();
@@ -139,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().popBackStack();
         }
     }
-
 
     private void requestPermission(String... permissions) {
         for (String permission : permissions) {
@@ -277,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
         mp3ProgressBar = findViewById(R.id.mp3_seekbar);
 
         txvSongTitle.setSelected(true);
-        btnRepeat.setTag(REPEATONE);
     }
 
     View.OnClickListener controlListener = new View.OnClickListener() {
@@ -285,20 +270,19 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()){
                 case R.id.imgbtn_play:
-                    if (musicController.getSongPlayingPos() == 0) {
+                    if (musicController.getSongPlayingPosition() == 0) {
                         musicController.playSong();
                     }else if (musicController.isPlaying()) {
                         musicController.pauseSong();
                     }else {
-                        musicController.goSong();
+                        musicController.continueSong();
                     }
                     break;
                 case R.id.imgbtn_next:
-                    musicController.playNext();
+                    musicController.nextSong();
                     break;
                 case R.id.btnRepeat:
-                    musicController.setRepeatMode();
-                    updateRepeatImgButtonView();
+                    musicController.setRepeatMode(view);
                     break;
                 case R.id.songview_linearlayout:
                     Intent intent = new Intent(MainActivity.this, PlayActivity.class);

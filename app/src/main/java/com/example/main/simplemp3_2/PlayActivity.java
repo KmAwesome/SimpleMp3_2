@@ -16,12 +16,8 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import static com.example.main.simplemp3_2.Service.MusicService.PAUSE;
-import static com.example.main.simplemp3_2.Service.MusicService.PLAY;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
-import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
-import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
 
 public class PlayActivity extends AppCompatActivity {
     private final String TAG = "PlayActivity";
@@ -35,18 +31,17 @@ public class PlayActivity extends AppCompatActivity {
 
     private void initUpdateUiReceiver() {
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(PLAY);
-        intentFilter.addAction(PAUSE);
+        intentFilter.addAction(ACTION_PLAY);
+        intentFilter.addAction(ACTION_PAUSE);
         registerReceiver(UIbroadcastReceiver, intentFilter);
     }
 
     BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(PAUSE)) {
+            if (intent.getAction().equals(ACTION_PAUSE)) {
                 btnPlay.setImageResource(R.drawable.main_btn_play);
             }
-
             String title = intent.getStringExtra("songTitle");
             if (!txvSongTitle.getText().equals(title)) {
                 txvSongTitle.setText(intent.getStringExtra("songTitle"));
@@ -54,11 +49,11 @@ public class PlayActivity extends AppCompatActivity {
             txvSongArtist.setText(intent.getStringExtra("songArtist"));
 
             seekBarSongProgress.setMax(musicController.getSongDuration());
-            seekBarSongProgress.setProgress(musicController.getSongPlayingPos());
+            seekBarSongProgress.setProgress(musicController.getSongPlayingPosition());
 
-            Song song = musicController.getSongList().get(musicController.getSongPos());
+            Song song = musicController.getSongList().get(musicController.getSongIndex());
             txvSongDuration.setText(String.format("%d:%02d", song.getDuration() / 60000, song.getDuration() / 1000 % 60));
-            txvSongNum.setText(String.format("%d / %d", musicController.getSongPos() + 1, musicController.getSongList().size()));
+            txvSongNum.setText(String.format("%d / %d", musicController.getSongIndex() + 1, musicController.getSongList().size()));
         }
     };
 
@@ -67,25 +62,15 @@ public class PlayActivity extends AppCompatActivity {
         public void run() {
             if (musicController.isPlaying()) {
                 seekBarSongProgress.setMax(musicController.getSongDuration());
-                seekBarSongProgress.setProgress(musicController.getSongPlayingPos());
+                seekBarSongProgress.setProgress(musicController.getSongPlayingPosition());
                 btnPlay.setImageResource(R.drawable.main_btn_pause);
             }
-            txvPlayingTime.setText(String.format("%d:%02d", musicController.getSongPlayingPos() / 60000, musicController.getSongPlayingPos() / 1000 % 60));
+            txvPlayingTime.setText(String.format("%d:%02d", musicController.getSongPlayingPosition() / 60000, musicController.getSongPlayingPosition() / 1000 % 60));
             seekBarValueControl.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-            updateRepeatImgButtonView();
             musicHandler.postDelayed(this,50);
         }
     };
 
-    private void updateRepeatImgButtonView() {
-        if (repeatMode.equals(REPEAT)) {
-            btnRepeatMode.setImageResource(R.drawable.main_btn_repeat_all);
-        }else if (repeatMode.equals(REPEATONE)) {
-            btnRepeatMode.setImageResource(R.drawable.main_btn_repeat_one);
-        }else if (repeatMode.equals(SHUFFLE)) {
-            btnRepeatMode.setImageResource(R.drawable.main_btn_repeat_shffle);
-        }
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -133,7 +118,7 @@ public class PlayActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (musicController.getSongList().size() > 0) {
-                    musicController.setSongPlayingPos(seekBar.getProgress());
+                    musicController.setSongPlayingPosition(seekBar.getProgress());
                     musicHandler.post(mp3StartRunable);
                 }
             }
@@ -197,23 +182,22 @@ public class PlayActivity extends AppCompatActivity {
         public void onClick(View view) {
             switch (view.getId()) {
                 case R.id.imgbtn_play:
-                    if (musicController.getSongPlayingPos() == 0) {
+                    if (musicController.getSongPlayingPosition() == 0) {
                         musicController.playSong();
                     }else if (musicController.isPlaying()) {
                         musicController.pauseSong();
                     }else {
-                        musicController.goSong();
+                        musicController.continueSong();
                     }
                     break;
                 case R.id.imgbtn_next:
-                    musicController.playNext();
+                    musicController.nextSong();
                     break;
                 case R.id.imgbtn_prev:
-                    musicController.playPrev();
+                    musicController.prevSong();
                     break;
                 case R.id.imgbtn_repeat:
-                    musicController.setRepeatMode();
-                    updateRepeatImgButtonView();
+                    musicController.setRepeatMode(view);
                     break;
                 case R.id.imgbtn_favorite:
                     SelectPlayListFragmentDialog selectPlayListFragmentDialog = new SelectPlayListFragmentDialog();

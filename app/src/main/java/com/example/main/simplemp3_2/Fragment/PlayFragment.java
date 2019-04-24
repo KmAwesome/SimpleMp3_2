@@ -52,7 +52,7 @@ public class PlayFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         musicController.setSongList(songlist);
-        musicController.setSongPos(i);
+        musicController.setSongIndex(i);
         musicController.playSong();
     }
 

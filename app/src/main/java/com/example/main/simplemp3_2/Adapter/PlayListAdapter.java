@@ -99,7 +99,7 @@ public class PlayListAdapter extends BaseAdapter {
         ArrayList<Song> songlist = songListInFile.getSongListInFile(songTitleList.get(postion));
         if (songlist.size() > 0) {
             musicController.setSongList(songlist);
-            musicController.setSongPos(0);
+            musicController.setSongIndex(0);
             musicController.playSong();
         }
     }

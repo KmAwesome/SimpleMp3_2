@@ -10,8 +10,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-public class Mp3AppWidgetProvider extends AppWidgetProvider {
-    private final String TAG = "Mp3AppWidgetProvider";
+public class AppWidgetProviderController extends AppWidgetProvider {
+    private final String TAG = "AppWidgetProvider";
     private RemoteViews remoteViews;
     private Intent playIntent;
 
@@ -53,13 +53,14 @@ public class Mp3AppWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_mp3_controller);
-        ComponentName thisWidget = new ComponentName(context, Mp3AppWidgetProvider.class);
+        ComponentName thisWidget = new ComponentName(context, AppWidgetProviderController.class);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("songInfo", Context.MODE_PRIVATE);
         int numOfSongs = sharedPreferences.getInt("numOfSongs", 0);
         String songTitle = sharedPreferences.getString("songTitle", "songTitle");
         String songArtist = sharedPreferences.getString("songArtist", "songArtist");
+        Boolean isPlay = sharedPreferences.getBoolean("isPlay", false);
 
         if (numOfSongs == 0) {
             remoteViews.setTextViewText(R.id.txv_songTitle, "點此新增歌曲");
@@ -70,25 +71,11 @@ public class Mp3AppWidgetProvider extends AppWidgetProvider {
             }
             return;
         }
-        
-        String action = intent.getAction();
-        switch (action) {
-            case "playSong" :
-                Log.i(TAG, "playSong");
-                remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_pause);
-                break;
-            case "pauseSong" :
-                Log.i(TAG, "playSong");
-                remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_play);
-            case "playNext" :
-                Log.i(TAG, "playNext");
-                break;
-            case "playPrev" :
-                Log.i(TAG, "playPrev");
-                break;
-            case "playList" :
-                Log.i(TAG, "playList");
-                break;
+
+        if (isPlay) {
+            remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_pause);
+        }else {
+            remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_play);
         }
 
         remoteViews.setTextViewText(R.id.txv_songTitle, songTitle);

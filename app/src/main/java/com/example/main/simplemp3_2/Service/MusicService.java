@@ -11,22 +11,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.MediaStore;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringDef;
+import android.support.annotation.UiThread;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.example.main.simplemp3_2.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.Mp3AppWidgetProvider;
+import com.example.main.simplemp3_2.AppWidgetProviderController;
+import com.example.main.simplemp3_2.MusicControl;
 import com.example.main.simplemp3_2.Song;
 import com.example.main.simplemp3_2.R;
 import java.io.IOException;
@@ -34,17 +42,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
-public class MusicService extends Service {
+public class MusicService extends Service implements MusicControl {
     private final String TAG = "MusicService";
 
     public final IBinder musicBind = new MusicBinder();
 
-    public final static String PLAY = "PLAY";
-    public final static String PAUSE = "PAUSE";
-    public final static String REPEAT = "Repeat";
-    public final static String REPEATONE = "RepeatOne";
-    public final static String SHUFFLE = "Shuffle";
-    public static String repeatMode;
+    final static String MODE_REPEAT_ALL = "MODE_REPEAT_ALL";
+    final static String MODE_REPEAT_ONE = "MODE_REPEAT_ONE";
+    final static String MODE_SHUFFLE = "MODE_SHUFFLE";
+
+    public final static String ACTION_PLAY = "ACTION_PLAY";
+    public final static String ACTION_PAUSE = "ACTION_PAUSE";
+
+    private static String repeatMode = "MODE_REPEAT_ALL";
 
     private static boolean isPause;
 
@@ -52,21 +62,34 @@ public class MusicService extends Service {
 
     private InitSongList initSongList;
     private MediaPlayer player;
-    private Intent updateUiIntent;
-    private ArrayList<Song> songlist;
+    private Intent updateActivityUiIntent;
+    private ArrayList<Song> songList;
     private ArrayList<Integer> shuffledList;
-    private Song playItemSong;
-    private int songPosn;
+    private Song song;
+    private int songIndex;
     private int shuffledIndex;
+    private Toast toast;
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
+    @StringDef({ACTION_PLAY, ACTION_PAUSE})
+    public @interface Action{}
+
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
-            updateActivityUi();
+            updateActivityUi(ACTION_PAUSE);
             return MusicService.this;
+        }
+    }
+
+    public void updateActivityUi(@Action String action) {
+        if (songList.size() > 0) {
+            updateActivityUiIntent.setAction(action);
+            updateActivityUiIntent.putExtra("songTitle", song.getTitle());
+            updateActivityUiIntent.putExtra("songArtist", song.getArtist());
+            sendBroadcast(updateActivityUiIntent);
         }
     }
 
@@ -85,10 +108,10 @@ public class MusicService extends Service {
         super.onCreate();
 
         initSongList = new InitSongList(this);
-        songlist = initSongList.getSongList();
-        updateUiIntent = new Intent();
-
-        setRepeatMode(REPEAT);
+        songList = initSongList.getSongList();
+        setSongListShuffle();
+        updateActivityUiIntent = new Intent();
+        toast = new Toast(this);
 
         musicControlNotification = new MusicControlNotification(this);
 
@@ -113,7 +136,7 @@ public class MusicService extends Service {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 mediaPlayer.reset();
-                playNext();
+                nextSong();
             }
         });
 
@@ -126,10 +149,10 @@ public class MusicService extends Service {
             }
         });
 
-        if (songlist.size() > 0 ) {
+        if (songList.size() > 0 ) {
             try {
-                playItemSong = songlist.get(songPosn);
-                long currSong = playItemSong.getId();
+                song = songList.get(songIndex);
+                long currSong = song.getId();
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
                 player.setDataSource(getApplicationContext(), trackUri);
             } catch (IOException e) {
@@ -139,7 +162,7 @@ public class MusicService extends Service {
 
         sharedPreferences = getSharedPreferences("songInfo", MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        editor.putInt("numOfSongs", songlist.size());
+        editor.putInt("numOfSongs", songList.size());
         editor.apply();
     }
 
@@ -151,7 +174,7 @@ public class MusicService extends Service {
     BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            pausePlayer();
+            pauseSong();
         }
     };
 
@@ -161,14 +184,14 @@ public class MusicService extends Service {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN:
                     Log.i(TAG, "AUDIOFOCUS_GAIN" + isPause);
-                    if (getPosn() != 0 && !isPause) {
-                        go();
+                    if (getSongPlayingPosition() != 0 && !isPause) {
+                        continueSong();
                     }
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                     Log.i(TAG, "AUDIOFOCUS_LOSS_TRANSIENT" + isPause);
-                    if (getPosn() != 0 && !isPause) {
-                        pausePlayer();
+                    if (getSongPlayingPosition() != 0 && !isPause) {
+                        pauseSong();
                         isPause = false;
                     }
                     break;
@@ -176,27 +199,19 @@ public class MusicService extends Service {
         }
     };
 
-    public void updateActivityUi() {
-        if (songlist.size() > 0) {
-            updateUiIntent.setAction(PLAY);
-            updateUiIntent.putExtra("songTitle", playItemSong.getTitle());
-            updateUiIntent.putExtra("songArtist", playItemSong.getArtist());
-            sendBroadcast(updateUiIntent);
-        }
-    }
-
+    @Override
     public void playSong() {
         try {
-            if (songlist.size() > 0) {
+            if (songList.size() > 0) {
                 player.reset();
-                playItemSong = songlist.get(songPosn);
-                long currSong = playItemSong.getId();
+                song = songList.get(songIndex);
+                long currSong = song.getId();
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
                 player.setDataSource(getApplicationContext(), trackUri);
                 player.prepareAsync();
-                updateActivityUi();
+                updateActivityUi(ACTION_PLAY);
                 musicControlNotification.updateNotificationUI("Play");
-                updateWidget("playSong");
+                updateWidget();
                 isPause = false;
             }
         } catch (Exception e) {
@@ -204,37 +219,167 @@ public class MusicService extends Service {
         }
     }
 
-    public void go() {
-        if (songlist.size() > 0) {
-            player.start();
-            musicControlNotification.updateNotificationUI("Play");
-            updateWidget("playSong");
-            isPause = false;
-        }
-    }
-
-    public void pausePlayer() {
-        if (songlist.size() > 0) {
+    @Override
+    public void pauseSong() {
+        if (songList.size() > 0) {
             player.pause();
-            updateUiIntent.setAction(PAUSE);
-            sendBroadcast(updateUiIntent);
+            updateActivityUi(ACTION_PAUSE);
             musicControlNotification.updateNotificationUI("Pause");
-            updateWidget("pauseSong");
+            updateWidget();
             isPause = true;
         }
     }
 
-    public void updateWidget(String action) {
-        Intent intent = new Intent(this, Mp3AppWidgetProvider.class);
-        intent.setAction(action);
+    @Override
+    public void continueSong() {
+        if (songList.size() > 0) {
+            player.start();
+            musicControlNotification.updateNotificationUI("Play");
+            updateWidget();
+            isPause = false;
+        }
+    }
 
-        if (songlist.size() > 0) {
-            Song song = songlist.get(getSongPos());
-            editor.putInt("numOfSongs", songlist.size());
+    @Override
+    public void prevSong() {
+
+        if (songList.size() == 0) {
+            return;
+        }
+
+        if (songIndex == 0) {
+            songIndex = songList.size() - 1;
+        } else if (songIndex > 0) {
+            songIndex--;
+        }
+        playSong();
+    }
+
+    @Override
+    public void nextSong() {
+
+        if (songList.size() == 0) {
+            return;
+        }
+
+        switch (repeatMode) {
+            case MODE_REPEAT_ALL:
+                songIndex++;
+                if (songIndex >= songList.size()) songIndex = 0;
+                break;
+            case MODE_REPEAT_ONE:
+                break;
+            case MODE_SHUFFLE:
+                if (shuffledIndex <=  shuffledList.size()-1) {
+                    songIndex = shuffledList.get(shuffledIndex);
+                    shuffledIndex++;
+                }else {
+                    shuffledIndex = 0;
+                    songIndex = shuffledList.get(shuffledIndex);
+                    shuffledIndex++;
+                }
+                break;
+        }
+        playSong();
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return player.isPlaying();
+    }
+
+    @Override
+    public void setSongIndex(int songIndex) {
+        this.songIndex = songIndex;
+    }
+
+    @Override
+    public int getSongIndex() {
+        return songIndex;
+    }
+
+    @Override
+    public void setSongPlayingPosition(int posn) {
+        player.seekTo(posn);
+    }
+
+    @Override
+    public int getSongPlayingPosition() {
+        return player.getCurrentPosition();
+    }
+
+    @Override
+    public void setSongList(ArrayList<Song> songs) {
+        songList  = songs;
+    }
+
+    @Override
+    public ArrayList<Song> getSongList() {
+        return songList;
+    }
+
+    @Override
+    public int getSongDuration() {
+        if (player.getCurrentPosition() == 0) {
+            return 0;
+        }
+        return player.getDuration();
+    }
+
+    @Override
+    public void setRepeatMode(View view) {
+        if (repeatMode.equals(MODE_REPEAT_ALL)) {
+            repeatMode = MODE_REPEAT_ONE;
+            toast.cancel();
+            toast = Toast.makeText(this, "單曲循環", Toast.LENGTH_SHORT);
+            toast.show();
+        }else if (repeatMode.equals(MODE_REPEAT_ONE)) {
+            repeatMode = MODE_SHUFFLE;
+            toast.cancel();
+            toast = Toast.makeText(this, "隨機播放", Toast.LENGTH_SHORT);
+            toast.show();
+        }else if (repeatMode.equals(MODE_SHUFFLE)) {
+            repeatMode = MODE_REPEAT_ALL;
+            toast.cancel();
+            toast = Toast.makeText(this, "循環播放", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        if (view.getId() == R.id.btnRepeat || view.getId() == R.id.imgbtn_repeat) {
+            updateRepeatImgButtonView(view);
+        }
+    }
+
+    private void updateRepeatImgButtonView(View view) {
+        ImageButton imageButton = ((ImageButton)view);
+        if (repeatMode.equals(MODE_REPEAT_ALL)) {
+            imageButton.setImageResource(R.drawable.main_btn_repeat_all);
+        }else if (repeatMode.equals(MODE_REPEAT_ONE)) {
+            imageButton.setImageResource(R.drawable.main_btn_repeat_one);
+        }else if (repeatMode.equals(MODE_SHUFFLE)) {
+            imageButton.setImageResource(R.drawable.main_btn_repeat_shffle);
+        }
+    }
+
+    @Override
+    public void setSongListShuffle() {
+        shuffledIndex = 0;
+        shuffledList = new ArrayList<>();
+        for (int i=0; i<songList.size(); i++) {
+            shuffledList.add(i);
+        }
+        Collections.shuffle(shuffledList);
+        Log.i(TAG, "setSongListShuffle: " + shuffledList);
+    }
+
+    @Override
+    public void updateWidget() {
+        if (songList.size() > 0) {
+            Song song = songList.get(getSongIndex());
+            editor.putInt("numOfSongs", songList.size());
             editor.putString("songTitle", song.getTitle());
             editor.putString("songArtist", song.getArtist());
         }else {
-            editor.putInt("numOfSongs", songlist.size());
+            editor.putInt("numOfSongs", songList.size());
             editor.putString("songTitle", "點此新增歌曲");
             editor.putString("songArtist", "");
         }
@@ -245,104 +390,8 @@ public class MusicService extends Service {
             editor.putBoolean("isPlay", false);
         }
         editor.apply();
+        Intent intent = new Intent(this, AppWidgetProviderController.class);
         sendBroadcast(intent);
-    }
-
-    public void playPrev() {
-        if (songlist.size() == 0) {
-            return;
-        }
-        if (songPosn == 0) {
-            songPosn = songlist.size() - 1;
-        } else if (songPosn > 0) {
-            songPosn--;
-        }
-        playSong();
-    }
-
-    public void playNext() {
-        if (songlist.size() == 0) {
-            return;
-        }
-        switch (repeatMode) {
-            case REPEAT:
-                songPosn++;
-                if (songPosn >= songlist.size()) songPosn = 0;
-                break;
-            case REPEATONE:
-                break;
-            case SHUFFLE:
-                Log.i(TAG, "playNext: " + shuffledIndex);
-                if (shuffledIndex <=  shuffledList.size()-1) {
-                    songPosn = shuffledList.get(shuffledIndex);
-                    shuffledIndex++;
-                }else {
-                    shuffledIndex = 0;
-                    songPosn = shuffledList.get(shuffledIndex);
-                    shuffledIndex++;
-                }
-                break;
-        }
-        playSong();
-    }
-
-    public boolean isPlaying() {
-        return player.isPlaying();
-    }
-
-    public ArrayList<Song> getSonglist() {
-        return songlist;
-    }
-
-    public void setSongList(ArrayList<Song> songs) {
-        songlist = songs;
-    }
-
-    public void setPosn(int posn) {
-        player.seekTo(posn);
-    }
-
-    public int getPosn() {
-        return player.getCurrentPosition();
-    }
-
-    public void setSongPos(int songIndex) {
-        songPosn = songIndex;
-    }
-
-    public int getSongPos() {
-        return songPosn;
-    }
-
-    public int getDur() {
-        if (player.getCurrentPosition() == 0) {
-            return 0;
-        }
-        return player.getDuration();
-    }
-
-    public void setRepeatMode(String string) {
-        switch (string) {
-            case REPEAT:
-                repeatMode = REPEAT;
-                break;
-            case REPEATONE:
-                repeatMode = REPEATONE;
-                break;
-            case SHUFFLE:
-                repeatMode = SHUFFLE;
-                setMusicShuffle();
-                break;
-        }
-    }
-
-    public void setMusicShuffle() {
-        shuffledIndex = 0;
-        shuffledList = new ArrayList<>();
-        for (int i=0; i<songlist.size(); i++) {
-            shuffledList.add(i);
-        }
-        Collections.shuffle(shuffledList);
     }
 
     public class MusicControlNotification extends BroadcastReceiver {
@@ -393,22 +442,22 @@ public class MusicService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals("closeNotification")) {
-                pausePlayer();
+                pauseSong();
                 stopForeground(true);
                 mBuilder = null;
                 return;
             } else if (intent.getAction().equals("playSong")) {
-                if (getPosn() == 0) {
+                if (getSongPlayingPosition() == 0) {
                     playSong();
                 }else if (isPlaying()) {
-                    pausePlayer();
+                    pauseSong();
                 }else {
-                    go();
+                    continueSong();
                 }
             }else if (intent.getAction().equals("playNext")) {
-                playNext();
+                nextSong();
             } else if (intent.getAction().equals("playPrev")) {
-                playPrev();
+                prevSong();
             }
         }
 
@@ -419,8 +468,8 @@ public class MusicService extends Service {
             }else if (tag.equals("Pause")) {
                 mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
             }
-            mRemoteViews.setTextViewText(R.id.noteTitle, playItemSong.getTitle());
-            mRemoteViews.setTextViewText(R.id.noteArtist, playItemSong.getArtist());
+            mRemoteViews.setTextViewText(R.id.noteTitle, song.getTitle());
+            mRemoteViews.setTextViewText(R.id.noteArtist, song.getArtist());
             mNotificationManager.notify(1, mBuilder);
         }
 

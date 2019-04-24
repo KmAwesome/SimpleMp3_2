@@ -186,7 +186,7 @@ public class SongAdapter extends BaseAdapter {
         if (file.exists()) {
             file.delete();
 
-            if (musicController.getSongPos() == i) {
+            if (musicController.getSongIndex() == i) {
                 musicController.pauseSong();
             }
 

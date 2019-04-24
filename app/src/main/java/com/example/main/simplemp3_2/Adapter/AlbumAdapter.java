@@ -93,7 +93,7 @@ public class AlbumAdapter extends BaseAdapter {
         if (mSongs.size() > 0) {
             MusicController musicController = ((MainActivity)context).getMusicController();
             musicController.setSongList(mSongs);
-            musicController.setSongPos(0);
+            musicController.setSongIndex(0);
             musicController.playSong();
         }
     }

@@ -6,21 +6,17 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.IntDef;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import com.example.main.simplemp3_2.Service.MusicService;
-
 import java.util.ArrayList;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEAT;
-import static com.example.main.simplemp3_2.Service.MusicService.REPEATONE;
-import static com.example.main.simplemp3_2.Service.MusicService.SHUFFLE;
-import static com.example.main.simplemp3_2.Service.MusicService.repeatMode;
 
-public class MusicController {
+public class MusicController implements MusicControl{
     private final String TAG = "MusicController";
-    private Context context;
     private MusicService musicService;
+    private Context context;
     private boolean isBind = false;
     private Toast toast;
 
@@ -31,7 +27,6 @@ public class MusicController {
     }
 
     public void bindMusicService() {
-        Log.i(TAG, "bindMusicService: " + isBind);
         Intent intent = new Intent(context, MusicService.class);
         context.bindService(intent, musicServiceConnection, context.BIND_AUTO_CREATE);
         context.startService(intent);
@@ -47,91 +42,88 @@ public class MusicController {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-
+            isBind = false;
         }
     };
 
-    public void playSong(){
+    @Override
+    public void playSong() {
         musicService.playSong();
     }
 
-    public void playPrev(){
-        musicService.playPrev();
+    @Override
+    public void pauseSong() {
+        musicService.pauseSong();
     }
 
-    public void playNext(){
-        musicService.playNext();
+    @Override
+    public void continueSong() {
+        musicService.continueSong();
     }
 
-    public void goSong(){
-        musicService.go();
+    @Override
+    public void prevSong() {
+        musicService.prevSong();
     }
 
-    public void pauseSong(){
-        musicService.pausePlayer();
+    @Override
+    public void nextSong() {
+        musicService.nextSong();
     }
 
+    @Override
     public boolean isPlaying() {
         return musicService.isPlaying();
     }
 
+    @Override
+    public void setSongIndex(int songIndex) {
+        musicService.setSongIndex(songIndex);
+    }
+
+    @Override
+    public int getSongIndex() {
+        return musicService.getSongIndex();
+    }
+
+    @Override
+    public void setSongPlayingPosition(int posn) {
+        musicService.setSongPlayingPosition(posn);
+    }
+
+    @Override
+    public int getSongPlayingPosition() {
+        return musicService.getSongPlayingPosition();
+    }
+
+    @Override
     public void setSongList(ArrayList<Song> songs) {
         musicService.setSongList(songs);
     }
 
+    @Override
     public ArrayList<Song> getSongList() {
-        return musicService.getSonglist();
+        return musicService.getSongList();
     }
 
-    public void setSongPos(int pos){
-        musicService.setSongPos(pos);
-    }
-
-    public int getSongPos() {
-        return musicService.getSongPos();
-    }
-
-    public void setSongPlayingPos(int posn) {
-        musicService.setPosn(posn);
-    }
-
-    public int getSongPlayingPos() {
-        if (getSongList().size() > 0) {
-            return musicService.getPosn();
-        }else {
-            return 0;
-        }
-    }
-
+    @Override
     public int getSongDuration() {
-        return musicService.getDur();
+        return musicService.getSongDuration();
     }
 
-    public void setRepeatMode() {
-        if (repeatMode.equals(REPEAT)) {
-            repeatMode = REPEATONE;
-            toast.cancel();
-            toast = Toast.makeText(context.getApplicationContext(), "單曲循環", Toast.LENGTH_SHORT);
-            toast.show();
-        }else if (repeatMode.equals(REPEATONE)) {
-            toast.cancel();
-            toast = Toast.makeText(context.getApplicationContext(), "隨機播放", Toast.LENGTH_SHORT);
-            toast.show();
-            repeatMode = SHUFFLE;
-        }else if (repeatMode.equals(SHUFFLE)) {
-            toast.cancel();
-            toast = Toast.makeText(context.getApplicationContext(), "循環播放", Toast.LENGTH_SHORT);
-            toast.show();
-            repeatMode = REPEAT;
-        }
+    @Override
+    public void setRepeatMode(View view) {
+        musicService.setRepeatMode(view);
     }
 
+    @Override
     public void setSongListShuffle() {
-        musicService.setMusicShuffle();
+        musicService.setSongListShuffle();
     }
 
+    @Override
     public void updateWidget() {
-        musicService.updateWidget(null);
+        musicService.updateWidget();
     }
 
     public void unbindMusicService() {
@@ -139,6 +131,5 @@ public class MusicController {
             context.unbindService(musicServiceConnection);
         }
     }
-
 }
 

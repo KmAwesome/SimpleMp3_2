@@ -20,14 +20,15 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".MusicInfoActivity" />
         <activity android:name=".PlayActivity" />
+
         <service android:name=".Service.MusicService" />
-        <receiver android:name=".Mp3AppWidgetProvider">
+
+        <receiver android:name=".AppWidgetProviderController">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
                 <action android:name="playSong"/>
