@@ -5,18 +5,15 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import com.example.main.simplemp3_2.Adapter.SongStyleAdapter;
-import com.example.main.simplemp3_2.InitSongList;
+import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Song.Song;
 
 import java.util.ArrayList;
 

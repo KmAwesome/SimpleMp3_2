@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -7,8 +7,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.RemoteViews;
+
+import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.R;
+
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
 
 public class AppWidgetProviderController extends AppWidgetProvider {
     private final String TAG = "AppWidgetProvider";
@@ -60,7 +65,6 @@ public class AppWidgetProviderController extends AppWidgetProvider {
         int numOfSongs = sharedPreferences.getInt("numOfSongs", 0);
         String songTitle = sharedPreferences.getString("songTitle", "songTitle");
         String songArtist = sharedPreferences.getString("songArtist", "songArtist");
-        Boolean isPlay = sharedPreferences.getBoolean("isPlay", false);
 
         if (numOfSongs == 0) {
             remoteViews.setTextViewText(R.id.txv_songTitle, "點此新增歌曲");
@@ -72,9 +76,9 @@ public class AppWidgetProviderController extends AppWidgetProvider {
             return;
         }
 
-        if (isPlay) {
+        if (intent.getAction().equals(ACTION_PLAY)) {
             remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_pause);
-        }else {
+        } else if (intent.getAction().equals(ACTION_PAUSE)) {
             remoteViews.setImageViewResource(R.id.btn_play, R.drawable.widget_btn_play);
         }
 

@@ -1,7 +1,5 @@
 package com.example.main.simplemp3_2;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,13 +8,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.example.main.simplemp3_2.Song.InitSongList;
+import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
 
 public class SettingActivity extends AppCompatActivity implements View.OnClickListener {
     private final String TAG = "SettingActivity";
     private InitSongList initSongList;
     private LinearLayout musicFilterDescription;
-    private TextView txvMusicFilter, txvVersion;
+    private TextView txvMusicFilterTime, txvVersion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +33,8 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         super.onStart();
         musicFilterDescription = findViewById(R.id.music_filter_description);
         musicFilterDescription.setOnClickListener(this);
-        txvMusicFilter = findViewById(R.id.txv_music_filter);
-        txvMusicFilter.setText(initSongList.getFilterTime());
+        txvMusicFilterTime = findViewById(R.id.txv_music_filter);
+        txvMusicFilterTime.setText(initSongList.getFilterTime());
         txvVersion = findViewById(R.id.txv_version);
         try {
             txvVersion.setText(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
@@ -47,32 +47,11 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.music_filter_description:
-                dialogTimeFilter();
+                SongFilterDialog songFilterDialog = new SongFilterDialog(SettingActivity.this);
+                songFilterDialog.setUpdateView(txvMusicFilterTime);
+                songFilterDialog.show();
                 break;
         }
-    }
-
-    public void dialogTimeFilter() {
-        final String[] time = {"不過濾", "15秒", "30秒", "1分鐘", "1分30秒", "2分鐘"};
-        final int [] filterTime = {0, 15, 30, 60, 90, 120};
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("略過小於時間")
-                .setItems(time, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        try {
-                            txvMusicFilter.setText(time[i]);
-                            initSongList.setFilterTime(filterTime[i]);
-                            initSongList.saveData();
-                            initSongList.initSongList();
-                            Toast.makeText(getApplicationContext(), "新增" + initSongList.getSongList().size() + "首歌曲至音樂庫中", Toast.LENGTH_LONG).show();
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-        builder.show();
     }
 
     @Override

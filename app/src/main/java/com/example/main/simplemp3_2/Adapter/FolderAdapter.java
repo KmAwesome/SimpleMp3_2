@@ -10,9 +10,9 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
-import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.Song.Song;
 import com.example.main.simplemp3_2.R;
 import java.util.ArrayList;
 

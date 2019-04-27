@@ -1,19 +1,12 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Song;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 
 public class SongListInFile {
     private final String TAG = "SongListInFile";

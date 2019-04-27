@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/time_set"
+        android:title="播放定時器"/>
+
+    <item
+        android:id="@+id/song_scan"
+        android:title="更新媒體庫"/>
+
+</menu>

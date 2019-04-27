@@ -7,19 +7,91 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <android.support.design.widget.CoordinatorLayout
+    <RelativeLayout
+        android:id="@+id/relativLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="1">
+    </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/relativLayout"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="vertical">
+
+        <ProgressBar
+            android:id="@+id/mp3_seekbar"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="55dp">
-        </RelativeLayout>
+            android:layout_height="2dp" />
 
-        <include layout="@layout/bottom_sheet_behavior"/>
+        <LinearLayout
+            android:id="@+id/songview_linearlayout"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal">
 
-    </android.support.design.widget.CoordinatorLayout>
+            <ImageView
+                android:id="@+id/view_icon"
+                android:layout_width="55dp"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:src="@drawable/main_view_mp3_icon" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txv_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:ellipsize="marquee"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:freezesText="true"
+                    android:gravity="left|bottom"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:singleLine="true"
+                    android:text="SongTitle"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/txv_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:gravity="left|top"
+                    android:text="SongArtist"
+                    android:singleLine="true"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnRepeat"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:src="@drawable/main_btn_repeat_all" />
+
+            <ImageButton
+                android:id="@+id/imgbtn_play"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:src="@drawable/main_btn_play" />
+
+            <ImageButton
+                android:id="@+id/imgbtn_next"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:src="@drawable/main_btn_play_next" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

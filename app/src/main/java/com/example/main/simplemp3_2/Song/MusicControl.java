@@ -1,11 +1,9 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Song;
 
-import android.support.annotation.IntDef;
-import android.support.annotation.Nullable;
 import android.view.View;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.example.main.simplemp3_2.Song.Song;
+
 import java.util.ArrayList;
 
 public interface MusicControl {
@@ -31,7 +29,9 @@ public interface MusicControl {
 
     void setRepeatMode(View view);
 
+    void updateRepeatImgButtonView(View view);
+
     void setSongListShuffle();
 
-    void updateWidget();
+    void updateWidget(String action);
 }

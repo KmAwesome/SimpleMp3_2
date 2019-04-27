@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
@@ -16,26 +17,25 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.MediaStore;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
-import android.support.annotation.UiThread;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import com.example.main.simplemp3_2.InitSongList;
+import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.AppWidgetProviderController;
-import com.example.main.simplemp3_2.MusicControl;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Widget.AppWidgetProviderController;
+import com.example.main.simplemp3_2.Song.MusicControl;
+import com.example.main.simplemp3_2.Song.Song;
 import com.example.main.simplemp3_2.R;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,12 +47,14 @@ public class MusicService extends Service implements MusicControl {
 
     public final IBinder musicBind = new MusicBinder();
 
-    final static String MODE_REPEAT_ALL = "MODE_REPEAT_ALL";
-    final static String MODE_REPEAT_ONE = "MODE_REPEAT_ONE";
-    final static String MODE_SHUFFLE = "MODE_SHUFFLE";
+    private final String MODE_REPEAT_ALL = "MODE_REPEAT_ALL";
+    private final String MODE_REPEAT_ONE = "MODE_REPEAT_ONE";
+    private final String MODE_SHUFFLE = "MODE_SHUFFLE";
+    private final String MODE_REPEAT = "MODE_REPEAT";
 
     public final static String ACTION_PLAY = "ACTION_PLAY";
     public final static String ACTION_PAUSE = "ACTION_PAUSE";
+    public final static String ACTION_START = "ACTION_START";
 
     private static String repeatMode = "MODE_REPEAT_ALL";
 
@@ -73,23 +75,17 @@ public class MusicService extends Service implements MusicControl {
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
-    @StringDef({ACTION_PLAY, ACTION_PAUSE})
+    private MediaSessionCompat mediaSessionCompat;
+
+    @StringDef({ACTION_PLAY, ACTION_PAUSE, ACTION_START})
     public @interface Action{}
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
-            updateActivityUi(ACTION_PAUSE);
+            updateActivityUi(ACTION_START);
+            initHeadsetControllReceiver();
             return MusicService.this;
-        }
-    }
-
-    public void updateActivityUi(@Action String action) {
-        if (songList.size() > 0) {
-            updateActivityUiIntent.setAction(action);
-            updateActivityUiIntent.putExtra("songTitle", song.getTitle());
-            updateActivityUiIntent.putExtra("songArtist", song.getArtist());
-            sendBroadcast(updateActivityUiIntent);
         }
     }
 
@@ -101,6 +97,42 @@ public class MusicService extends Service implements MusicControl {
 
     public boolean onUnbind(Intent intent) {
         return false;
+    }
+
+    public void updateActivityUi(@Action String action) {
+        if (songList.size() > 0) {
+            updateActivityUiIntent.setAction(action);
+            updateActivityUiIntent.putExtra("songTitle", song.getTitle());
+            updateActivityUiIntent.putExtra("songArtist", song.getArtist());
+            sendBroadcast(updateActivityUiIntent);
+        }
+    }
+
+    public void initHeadsetControllReceiver() {
+        ComponentName mbr = new ComponentName(getPackageName(), HeadSetReceiver.class.getName());
+        mediaSessionCompat = new MediaSessionCompat(getApplicationContext(), "mbr", mbr, null);
+        mediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSessionCompat.setActive(true);
+
+        mediaSessionCompat.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
+                KeyEvent keyEvent  = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+
+                if (keyEvent.getAction() == keyEvent.ACTION_UP) {
+                    if (Intent.ACTION_MEDIA_BUTTON.equals(mediaButtonEvent.getAction())) {
+                        if (getSongPlayingPosition() == 0) {
+                            playSong();
+                        }else if (isPlaying()) {
+                            pauseSong();
+                        }else {
+                            continueSong();
+                        }
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -124,7 +156,6 @@ public class MusicService extends Service implements MusicControl {
         player = new MediaPlayer();
         player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
@@ -136,6 +167,23 @@ public class MusicService extends Service implements MusicControl {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 mediaPlayer.reset();
+                if (repeatMode.equals(MODE_REPEAT) && songIndex == songList.size()-1) {
+                    try {
+                        songIndex = 0;
+                        player.reset();
+                        song = songList.get(songIndex);
+                        long currSong = song.getId();
+                        Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+                        player.setDataSource(getApplicationContext(), trackUri);
+                        updateActivityUi(ACTION_PAUSE);
+                        updateWidget(ACTION_PAUSE);
+                        musicControlNotification.updateNotificationUI("Pause");
+                        isPause = false;
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 nextSong();
             }
         });
@@ -159,7 +207,6 @@ public class MusicService extends Service implements MusicControl {
                 e.printStackTrace();
             }
         }
-
         sharedPreferences = getSharedPreferences("songInfo", MODE_PRIVATE);
         editor = sharedPreferences.edit();
         editor.putInt("numOfSongs", songList.size());
@@ -167,14 +214,22 @@ public class MusicService extends Service implements MusicControl {
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public void onDestroy() {
         stopSelf();
+        mediaSessionCompat.release();
     }
 
     BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            pauseSong();
+            if (isPlaying()) {
+                pauseSong();
+            }
         }
     };
 
@@ -210,8 +265,8 @@ public class MusicService extends Service implements MusicControl {
                 player.setDataSource(getApplicationContext(), trackUri);
                 player.prepareAsync();
                 updateActivityUi(ACTION_PLAY);
+                updateWidget(ACTION_PLAY);
                 musicControlNotification.updateNotificationUI("Play");
-                updateWidget();
                 isPause = false;
             }
         } catch (Exception e) {
@@ -224,8 +279,8 @@ public class MusicService extends Service implements MusicControl {
         if (songList.size() > 0) {
             player.pause();
             updateActivityUi(ACTION_PAUSE);
+            updateWidget(ACTION_PAUSE);
             musicControlNotification.updateNotificationUI("Pause");
-            updateWidget();
             isPause = true;
         }
     }
@@ -234,8 +289,8 @@ public class MusicService extends Service implements MusicControl {
     public void continueSong() {
         if (songList.size() > 0) {
             player.start();
+            updateWidget(ACTION_PLAY);
             musicControlNotification.updateNotificationUI("Play");
-            updateWidget();
             isPause = false;
         }
     }
@@ -277,6 +332,12 @@ public class MusicService extends Service implements MusicControl {
                     shuffledIndex = 0;
                     songIndex = shuffledList.get(shuffledIndex);
                     shuffledIndex++;
+                }
+                break;
+            case MODE_REPEAT:
+                songIndex++;
+                if (songIndex >= songList.size()) {
+                    songIndex = 0;
                 }
                 break;
         }
@@ -339,17 +400,23 @@ public class MusicService extends Service implements MusicControl {
             toast = Toast.makeText(this, "隨機播放", Toast.LENGTH_SHORT);
             toast.show();
         }else if (repeatMode.equals(MODE_SHUFFLE)) {
+            repeatMode = MODE_REPEAT;
+            toast.cancel();
+            toast = Toast.makeText(this, "關閉循環播放", Toast.LENGTH_SHORT);
+            toast.show();
+        }else if (repeatMode.equals(MODE_REPEAT)) {
             repeatMode = MODE_REPEAT_ALL;
             toast.cancel();
             toast = Toast.makeText(this, "循環播放", Toast.LENGTH_SHORT);
             toast.show();
+
         }
         if (view.getId() == R.id.btnRepeat || view.getId() == R.id.imgbtn_repeat) {
             updateRepeatImgButtonView(view);
         }
     }
 
-    private void updateRepeatImgButtonView(View view) {
+    public void updateRepeatImgButtonView(View view) {
         ImageButton imageButton = ((ImageButton)view);
         if (repeatMode.equals(MODE_REPEAT_ALL)) {
             imageButton.setImageResource(R.drawable.main_btn_repeat_all);
@@ -357,6 +424,8 @@ public class MusicService extends Service implements MusicControl {
             imageButton.setImageResource(R.drawable.main_btn_repeat_one);
         }else if (repeatMode.equals(MODE_SHUFFLE)) {
             imageButton.setImageResource(R.drawable.main_btn_repeat_shffle);
+        }else if (repeatMode.equals(MODE_REPEAT)) {
+            imageButton.setImageResource(R.drawable.main_btn_repeat);
         }
     }
 
@@ -371,8 +440,7 @@ public class MusicService extends Service implements MusicControl {
         Log.i(TAG, "setSongListShuffle: " + shuffledList);
     }
 
-    @Override
-    public void updateWidget() {
+    public void updateWidget(@Action String action) {
         if (songList.size() > 0) {
             Song song = songList.get(getSongIndex());
             editor.putInt("numOfSongs", songList.size());
@@ -391,6 +459,7 @@ public class MusicService extends Service implements MusicControl {
         }
         editor.apply();
         Intent intent = new Intent(this, AppWidgetProviderController.class);
+        intent.setAction(action);
         sendBroadcast(intent);
     }
 
@@ -490,6 +559,7 @@ public class MusicService extends Service implements MusicControl {
                             .setSmallIcon(R.drawable.main_view_mp3_icon)
                             .setCustomContentView(mRemoteViews)
                             .setContentIntent(pendingIntent)
+                            .setVisibility(Notification.VISIBILITY_PUBLIC)
                             .build();
                 }
 
@@ -499,6 +569,7 @@ public class MusicService extends Service implements MusicControl {
                             .setContent(mRemoteViews)
                             .setContentIntent(pendingIntent)
                             .setPriority(Notification.PRIORITY_MAX)
+                            .setVisibility(Notification.VISIBILITY_PUBLIC)
                             .build();
                 }
                 mBuilder.flags = Notification.FLAG_NO_CLEAR;

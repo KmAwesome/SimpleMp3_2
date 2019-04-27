@@ -1,19 +1,18 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Song;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.IntDef;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.Service.MusicService;
 import java.util.ArrayList;
 
-public class MusicController implements MusicControl{
+public class MusicController implements MusicControl {
     private final String TAG = "MusicController";
     private MusicService musicService;
     private Context context;
@@ -117,13 +116,18 @@ public class MusicController implements MusicControl{
     }
 
     @Override
+    public void updateRepeatImgButtonView(View view) {
+        musicService.updateRepeatImgButtonView(view);
+    }
+
+    @Override
     public void setSongListShuffle() {
         musicService.setSongListShuffle();
     }
 
     @Override
-    public void updateWidget() {
-        musicService.updateWidget();
+    public void updateWidget(String action) {
+        musicService.updateWidget(action);
     }
 
     public void unbindMusicService() {

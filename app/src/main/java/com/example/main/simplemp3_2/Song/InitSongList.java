@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Song;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,20 +7,20 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 public class InitSongList {
-    private final static String TAG = "InitSongList";
-    private final static String musicFilter = "MUSICFILTER";
+    private final String TAG = "InitSongList";
+    public final static String musicFilter = "MUSICFILTER";
     private final static String time = "TIME";
     private final static String sort = "SORT";
-    private static int filterTime, sortSelect;
+    private final static String sortString = "SORTSTRING";
+    private String string;
+    private int filterTime, sortSelect;
     private Context context;
     private SharedPreferences sharedPreferences;
     private ArrayList<Song> songlist;
@@ -87,8 +87,10 @@ public class InitSongList {
         }
 
         if (sortSelect == 0) {
+            string = "默認";
             sortByDefalut();
         }else if (sortSelect == 1) {
+            string = "日期";
             sortByDate();
         }
     }
@@ -134,6 +136,7 @@ public class InitSongList {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(time, filterTime);
         editor.putInt(sort, sortSelect);
+        editor.putString(sortString, string);
         editor.apply();
     }
 

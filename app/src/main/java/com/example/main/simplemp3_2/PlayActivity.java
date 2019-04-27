@@ -8,16 +8,26 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.Song.Song;
+import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
+
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_START;
 
 public class PlayActivity extends AppCompatActivity {
     private final String TAG = "PlayActivity";
@@ -28,17 +38,26 @@ public class PlayActivity extends AppCompatActivity {
     private SeekBar seekBarSongProgress, seekBarValueControl;
     private int currentVolume;
     private static Handler musicHandler = new Handler();
+    private static boolean isRunning, isBackground;
+    private View repeatView;
 
     private void initUpdateUiReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_PLAY);
         intentFilter.addAction(ACTION_PAUSE);
+        intentFilter.addAction(ACTION_START);
         registerReceiver(UIbroadcastReceiver, intentFilter);
     }
 
     BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (!isRunning) {
+                mp3StartRunable.run();
+            }
+
+            musicController.updateRepeatImgButtonView(repeatView);
+
             if (intent.getAction().equals(ACTION_PAUSE)) {
                 btnPlay.setImageResource(R.drawable.main_btn_play);
             }
@@ -47,7 +66,6 @@ public class PlayActivity extends AppCompatActivity {
                 txvSongTitle.setText(intent.getStringExtra("songTitle"));
             }
             txvSongArtist.setText(intent.getStringExtra("songArtist"));
-
             seekBarSongProgress.setMax(musicController.getSongDuration());
             seekBarSongProgress.setProgress(musicController.getSongPlayingPosition());
 
@@ -60,26 +78,50 @@ public class PlayActivity extends AppCompatActivity {
     private Runnable mp3StartRunable = new Runnable() {
         @Override
         public void run() {
-            if (musicController.isPlaying()) {
-                seekBarSongProgress.setMax(musicController.getSongDuration());
-                seekBarSongProgress.setProgress(musicController.getSongPlayingPosition());
-                btnPlay.setImageResource(R.drawable.main_btn_pause);
+            try {
+                //if (!isBackground) {
+                    isRunning = true;
+                    if (musicController.isPlaying()) {
+                        seekBarSongProgress.setMax(musicController.getSongDuration());
+                        seekBarSongProgress.setProgress(musicController.getSongPlayingPosition());
+                        btnPlay.setImageResource(R.drawable.main_btn_pause);
+                    }
+                    txvPlayingTime.setText(String.format("%d:%02d", musicController.getSongPlayingPosition() / 60000, musicController.getSongPlayingPosition() / 1000 % 60));
+                    seekBarValueControl.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+                //}
+                musicHandler.postDelayed(this,50);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            txvPlayingTime.setText(String.format("%d:%02d", musicController.getSongPlayingPosition() / 60000, musicController.getSongPlayingPosition() / 1000 % 60));
-            seekBarValueControl.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-            musicHandler.postDelayed(this,50);
         }
     };
-
-
+    
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("");
+        toolbar.setNavigationIcon(R.drawable.play_btn_back);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+        
+        toolbar.inflateMenu(R.menu.activity_play_menu);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.menu_set) {
+                    View view = findViewById(R.id.menu_set);
+                    PopupMenu popupMenu = new PopupMenu(PlayActivity.this, view);
+                    popupMenu.getMenuInflater().inflate(R.menu.activity_play_menu, popupMenu.getMenu());
+                    popupMenu.show();
+                }
+                return false;
+            }
+        });
 
         musicController = new MusicController(this);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -89,6 +131,7 @@ public class PlayActivity extends AppCompatActivity {
         btnPlayPrev = findViewById(R.id.imgbtn_prev);
         btnRepeatMode = findViewById(R.id.imgbtn_repeat);
         btnFavorite = findViewById(R.id.imgbtn_favorite);
+        repeatView = findViewById(R.id.imgbtn_repeat);
 
         btnPlay.setOnClickListener(controlListener);
         btnPlayNext.setOnClickListener(controlListener);
@@ -146,13 +189,19 @@ public class PlayActivity extends AppCompatActivity {
         });
 
         initUpdateUiReceiver();
-
-        musicHandler.post(mp3StartRunable);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        isRunning = false;
+        isBackground = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isBackground = true;
     }
 
     @Override
@@ -166,17 +215,7 @@ public class PlayActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
+    
     View.OnClickListener controlListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {

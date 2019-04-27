@@ -13,17 +13,19 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import com.example.main.simplemp3_2.InitSongList;
+import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
-import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.Song.Song;
 import com.example.main.simplemp3_2.MusicInfoActivity;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.SongListInFile;
+import com.example.main.simplemp3_2.Song.SongListInFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
 
 /**
  * Created by main on 2018/2/17.
@@ -199,7 +201,7 @@ public class SongAdapter extends BaseAdapter {
 
             musicController.setSongList(songlist);
             if (musicController.getSongList().size() == 0) {
-                musicController.updateWidget();
+                musicController.updateWidget(ACTION_PAUSE);
             }
         }
     }

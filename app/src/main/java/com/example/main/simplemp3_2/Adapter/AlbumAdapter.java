@@ -1,7 +1,6 @@
 package com.example.main.simplemp3_2.Adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,10 +11,10 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicController;
+import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.Song.Song;
 import java.util.ArrayList;
 
 public class AlbumAdapter extends BaseAdapter {

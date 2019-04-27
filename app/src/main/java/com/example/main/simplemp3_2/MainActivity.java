@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.support.annotation.IntDef;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -27,13 +28,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.example.main.simplemp3_2.Adapter.PagerAdapter;
+import com.example.main.simplemp3_2.Song.InitSongList;
+import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.Dialog.CountDownDialog;
+import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static com.example.main.simplemp3_2.Service.MusicService.ACTION_START;
+import static com.example.main.simplemp3_2.Song.InitSongList.musicFilter;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
 
@@ -44,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
     private static Handler musicHandler = new Handler();
+    //private static Handler musicScanHanlder = new Handler();
     private PagerAdapter pagerAdapter;
     private DrawerLayout drawerLayout;
     private RelativeLayout relativeLayout;
@@ -53,20 +60,25 @@ public class MainActivity extends AppCompatActivity {
     private View view;
     private ProgressBar mp3ProgressBar;
     public TextView txvSongTitle,txvSongArtist;
-    public ImageButton btnPlaySong, btnPlayNext,btnRepeat, btnPlayPrev;
+    public ImageButton btnPlaySong, btnPlayNext,btnRepeat;
     private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
     private CountDownDialog countDownDialog;
+    private static boolean isBackground, isRunning;
 
     private void initUpdateUiReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_PLAY);
         intentFilter.addAction(ACTION_PAUSE);
+        intentFilter.addAction(ACTION_START);
         registerReceiver(UIbroadcastReceiver, intentFilter);
     }
 
     BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (!isRunning) {
+                mp3Start.run();
+            }
             if (intent.getAction().equals(ACTION_PAUSE)) {
                 btnPlaySong.setImageResource(R.drawable.main_btn_play);
             }else if (intent.getAction().equals(ACTION_PLAY)) {
@@ -76,21 +88,44 @@ public class MainActivity extends AppCompatActivity {
             mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
             txvSongTitle.setText(intent.getStringExtra("songTitle"));
             txvSongArtist.setText(intent.getStringExtra("songArtist"));
-            musicHandler.post(mp3Start);
         }
     };
 
     private Runnable mp3Start = new Runnable() {
         @Override
         public void run() {
-            if (musicController.isPlaying()) {
-                mp3ProgressBar.setMax(musicController.getSongDuration());
-                mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
-                btnPlaySong.setImageResource(R.drawable.main_btn_pause);
+            try {
+                //if (!isBackground) {
+                    isRunning = true;
+                    if (musicController.isPlaying()) {
+                        mp3ProgressBar.setMax(musicController.getSongDuration());
+                        mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
+                        btnPlaySong.setImageResource(R.drawable.main_btn_pause);
+                    }
+                //}
+                musicHandler.postDelayed(this, 50);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            musicHandler.postDelayed(mp3Start,50);
         }
     };
+
+    /*
+    Runnable musicScanRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                if (!isBackground) {
+                    num++;
+                    Log.i(TAG, "run: " + musicScanHanlder + " , " + musicController.getSongList().size() + ", " + num);
+                }
+                musicScanHanlder.postDelayed(this, 1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,14 +137,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        isBackground = false;
+        isRunning = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isBackground = true;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         unregisterReceiver(UIbroadcastReceiver);
-
         if (musicController != null) {
             musicHandler.removeCallbacks(mp3Start);
             musicController.unbindMusicService();
@@ -163,22 +204,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void initToolBar() {
         toolbar = findViewById(R.id.toolbar);
-        toolbar.inflateMenu(R.menu.toolbar_menu);
+        toolbar.inflateMenu(R.menu.toolbar_main_menu);
+
+        SharedPreferences sharedPreferences = getSharedPreferences(musicFilter, Context.MODE_PRIVATE);
+        String sortString = sharedPreferences.getString("SORTSTRING", "排列");
+        toolbar.getMenu().findItem(R.id.menu_sort).setTitle(sortString);
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
+            public boolean onMenuItemClick(final MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.menu_sort:
-                        String srot[] = {"默認", "日期"};
+                        final String srot[] = {"默認", "日期"};
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                         builder.setTitle("依方法排序");
                         builder.setItems(srot, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 if (i == 0) {
+                                    item.setTitle(srot[i]);
                                     initSongList.setSortBy(InitSongList.sortBy.sortByDefault);
                                 }else if (i == 1) {
+                                    item.setTitle(srot[i]);
                                     initSongList.setSortBy(InitSongList.sortBy.sortByDate);
                                 }
                                 initSongList.saveData();
@@ -186,6 +233,26 @@ public class MainActivity extends AppCompatActivity {
                                 pagerAdapter.refreshAllFragment();
                             }
                         }).show();
+                        break;
+                    case R.id.menu_set :
+                        View view = findViewById(R.id.menu_set);
+                        PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
+                        popupMenu.getMenuInflater().inflate(R.menu.toolbar_menu_set, popupMenu.getMenu());
+                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem menuItem) {
+                                switch (menuItem.getItemId()) {
+                                    case R.id.time_set :
+                                        countDownDialog.show(getSupportFragmentManager(), null);
+                                        break;
+                                    case R.id.song_scan :
+                                        SongFilterDialog songFilterDialog = new SongFilterDialog(MainActivity.this);
+                                        songFilterDialog.show();
+                                }
+                                return false;
+                            }
+                        });
+                        popupMenu.show();
                         break;
                 }
                 return false;
@@ -274,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
                         musicController.playSong();
                     }else if (musicController.isPlaying()) {
                         musicController.pauseSong();
+                        return;
                     }else {
                         musicController.continueSong();
                     }

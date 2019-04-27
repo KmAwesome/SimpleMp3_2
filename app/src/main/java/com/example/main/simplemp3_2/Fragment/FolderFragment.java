@@ -11,9 +11,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.Adapter.FolderAdapter;
-import com.example.main.simplemp3_2.InitSongList;
+import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Song;
+import com.example.main.simplemp3_2.Song.Song;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -1,23 +1,17 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
-import com.example.main.simplemp3_2.Fragment.PlayListFragment;
-import java.io.ObjectOutputStream;
+
+import com.example.main.simplemp3_2.Song.SongListInFile;
+
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
 public class SelectPlayListFragmentDialog extends DialogFragment {
-    private final static String TAG = "SelectPlayListFragmentDialog";
+    private final String TAG = "SelectPlayListFragmentDialog";
     private SongListInFile songListInFile;
     private ArrayList<String> songTitleList;
     private ArrayList<String> songStringList = new ArrayList<>();

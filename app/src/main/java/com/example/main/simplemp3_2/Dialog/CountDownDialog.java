@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,13 +9,14 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.R;
 
 public class CountDownDialog extends DialogFragment {
     private final String TAG = "CountDownDialog";
@@ -115,8 +116,8 @@ public class CountDownDialog extends DialogFragment {
                 timeHandler.removeCallbacks(this);
                 timeSetSeekbar.setEnabled(true);
                 timeIsCountDown = false;
-                if ( ((MainActivity)context).musicController.isPlaying()) {
-                    ((MainActivity)context).musicController.pauseSong();
+                if (musicController.isPlaying()) {
+                    musicController.pauseSong();
                 }
                 return;
             }
