@@ -1,12 +1,14 @@
 package com.example.main.simplemp3_2.Song;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 public class SongListInFile {
     private final String TAG = "SongListInFile";
@@ -58,13 +60,13 @@ public class SongListInFile {
     public ArrayList<Song> getSongListInFile(String songTitle) {
         if (songList != null) {
             songList.clear();
-        }
-        ArrayList<Song> allSongList = initSongList.getSongList();
-        ArrayList<String> songStringList = readSongListInFile(songTitle);
-        for (int i=0; i<allSongList.size(); i++) {
-            for (String s : songStringList) {
-                if (allSongList.get(i).getTitle().contains(s)) {
-                    songList.add(allSongList.get(i));
+        };
+        ArrayList<Song> songs = initSongList.getSongList();
+        ArrayList<String> songTitles = readSongListInFile(songTitle);
+        for (String s : songTitles) {
+            for (int i=0; i<songs.size(); i++) {
+                if (s.contains(songs.get(i).getTitle())) {
+                    songList.add(songs.get(i));
                 }
             }
         }
@@ -75,28 +77,12 @@ public class SongListInFile {
         try {
             ArrayList<String> songs = readSongListInFile(songTitle);
             for (int i=0; i<songStringList.size(); i++) {
-                if (!songs.contains(songStringList.get(i))) {
-                    songs.add(songStringList.get(i));
+                if (!songStringList.contains(songs.get(i))) {
+                    songStringList.add(songs.get(i));
                 }
             }
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(songTitle + ".bin",Context.MODE_PRIVATE));
-            objectOutputStream.writeObject(songs);
-            objectOutputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void removeSongInPlayList(String playListTitle, String songTitle) {
-        try {
-            ArrayList<String> songs = readSongListInFile(playListTitle);
-            for (int i=0; i<songs.size(); i++) {
-                if (songs.get(i).contains(songTitle)) {
-                    songs.remove(i);
-                }
-            }
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(playListTitle + ".bin",Context.MODE_PRIVATE));
-            objectOutputStream.writeObject(songs);
+            objectOutputStream.writeObject(songStringList);
             objectOutputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,6 +99,22 @@ public class SongListInFile {
             e.printStackTrace();
         }
         return songStringList;
+    }
+
+    public void removeSongInPlayList(String playListTitle, String songTitle) {
+        try {
+            ArrayList<String> songs = readSongListInFile(playListTitle);
+            for (int i=0; i<songs.size(); i++) {
+                if (songs.get(i).contains(songTitle)) {
+                    songs.remove(i);
+                }
+            }
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(playListTitle + ".bin",Context.MODE_PRIVATE));
+            objectOutputStream.writeObject(songs);
+            objectOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void removeSongListInFile(String songTitle) {

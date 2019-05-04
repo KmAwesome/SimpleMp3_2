@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Fragment.PlayFragment">
 
-    <ListView
-        android:id="@+id/song_list"
+    <com.example.main.simplemp3_2.DragListView
+        android:id="@+id/drag_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </ListView>
+    </com.example.main.simplemp3_2.DragListView>
 
-</LinearLayout>
+</FrameLayout>

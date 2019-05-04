@@ -29,7 +29,7 @@ public class CountDownDialog extends DialogFragment {
     private View contentView;
     private Context context;
     private static MenuItem menuItem;
-    private String timeString;
+    private static String timeString;
     private MusicController musicController;
 
     @Override

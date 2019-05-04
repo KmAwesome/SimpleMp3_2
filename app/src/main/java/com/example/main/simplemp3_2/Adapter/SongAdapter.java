@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,23 +40,14 @@ public class SongAdapter extends BaseAdapter {
     private int m_position;
     private InitSongList initSongList;
     private MusicController musicController;
-    private String playListTitle;
 
     public SongAdapter(Context context, ArrayList<Song> songlist) {
         this.context = context;
         songInf = LayoutInflater.from(context);
         this.songlist = songlist;
         initSongList = new InitSongList(context);
-        musicController = ((MainActivity)context).getMusicController();
-    }
-
-    public SongAdapter(Context context, ArrayList<Song> songlist, String playListTitle) {
-        this.context = context;
-        songInf = LayoutInflater.from(context);
-        this.songlist = songlist;
-        initSongList = new InitSongList(context);
-        musicController = ((MainActivity)context).getMusicController();
-        this.playListTitle = playListTitle;
+        if (context instanceof MainActivity)
+            musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -112,42 +104,16 @@ public class SongAdapter extends BaseAdapter {
         return converView;
     }
 
-    private void musicInfo(int pos) {
-        Song mysong = songlist.get(pos);
-        Intent intent = new Intent();
-        intent.setClass(context, MusicInfoActivity.class);
-        intent.putExtra("Title", mysong.getTitle());
-        intent.putExtra("Artist", mysong.getArtist());
-        intent.putExtra("Album", mysong.getAlbum());
-        intent.putExtra("Id", mysong.getId());
-        intent.putExtra("Duration", mysong.getDuration());
-        intent.putExtra("Path", mysong.getPath());
-        intent.putExtra("Pos", pos);
-        intent.putExtra("Style", mysong.getStyle());
-        context.startActivity(intent);
-    }
-
     View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             m_position = (Integer) view.getTag();
             PopupMenu popupMenu = new PopupMenu(context, view);
-            if (playListTitle != null) {
-                popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song_in_playlist, popupMenu.getMenu());
-            }else {
-                popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song, popupMenu.getMenu());
-            }
+            popupMenu.getMenuInflater().inflate(R.menu.popup_menu_song, popupMenu.getMenu());
             popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
-                        case R.id.removeFromList:
-                            SongListInFile songListInFile = new SongListInFile(context);
-                            songListInFile.removeSongInPlayList(playListTitle, songlist.get(m_position).getTitle());
-                            songlist.remove(m_position);
-                            notifyDataSetChanged();
-                            ((MainActivity)context).refreshAllFragment();
-                            break;
                         case R.id.musicInfo:
                             musicInfo(m_position);
                             break;
@@ -163,6 +129,8 @@ public class SongAdapter extends BaseAdapter {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     deleteSong(songlist.get(m_position).getPath(), m_position);
+                                    notifyDataSetChanged();
+                                    ((MainActivity)context).refreshAllFragment();
                                 }
                             });
                             alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -172,8 +140,6 @@ public class SongAdapter extends BaseAdapter {
                                 }
                             });
                             alertDialog.show();
-                            notifyDataSetChanged();
-                            ((MainActivity)context).refreshAllFragment();
                             break;
                     }
                     return true;
@@ -183,19 +149,36 @@ public class SongAdapter extends BaseAdapter {
         }
     };
 
+    private void musicInfo(int pos) {
+        Song mysong = songlist.get(pos);
+        Intent intent = new Intent();
+        intent.setClass(context, MusicInfoActivity.class);
+        intent.putExtra("Title", mysong.getTitle());
+        intent.putExtra("Artist", mysong.getArtist());
+        intent.putExtra("Album", mysong.getAlbum());
+        intent.putExtra("Id", mysong.getId());
+        intent.putExtra("Duration", mysong.getDuration());
+        intent.putExtra("Path", mysong.getPath());
+        intent.putExtra("Pos", pos);
+        intent.putExtra("Style", mysong.getStyle());
+        context.startActivity(intent);
+    }
+
     private void deleteSong(String musicPath, int i) {
         File file = new File(musicPath);
+        
         if (file.exists()) {
             file.delete();
 
             if (musicController.getSongIndex() == i) {
-                musicController.pauseSong();
+                if (musicController.isPlaying()) {
+                    musicController.pauseSong();
+                }
             }
 
             songlist.remove(i);
 
-            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
+            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
 
             songlist = initSongList.getSongList();
 

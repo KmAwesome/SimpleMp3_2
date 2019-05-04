@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class PagerAdapter extends FragmentPagerAdapter {
     private int numOfTab;
-    private PlayFragment playFragment;
+    public PlayFragment playFragment;
     private ArtistFragment artistFragment;
     private AlbumFragment albumFragment;
     private FolderFragment folderFragment;

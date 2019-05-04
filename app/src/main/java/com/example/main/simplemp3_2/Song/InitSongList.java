@@ -4,10 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,8 +42,7 @@ public class InitSongList {
         }
 
         ContentResolver musicResolver = context.getContentResolver();
-        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+        Cursor musicCursor = musicResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
             do {
@@ -60,7 +57,7 @@ public class InitSongList {
                     String thisDate = musicCursor.getString(musicCursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED));
 
                     if (thisTitle == null) {
-                        thisTitle = musicCursor.getString(musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                        thisTitle = "<unknow>";
                     }
 
                     if (thisArtist == null) {

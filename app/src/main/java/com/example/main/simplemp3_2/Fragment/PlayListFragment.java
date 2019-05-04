@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,9 +88,9 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
         Bundle bundle = new Bundle();
         bundle.putSerializable("playSongList", songListInFile.getSongListInFile(songTitleList.get(i)));
         bundle.putString("playListTitle", songTitleList.get(i));
-        SongFragment songFragment = new SongFragment();
-        songFragment.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.relativLayout, songFragment).addToBackStack(null).commit();
+        DragSongFragment dragSongFragment = new DragSongFragment();
+        dragSongFragment.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.relativLayout, dragSongFragment).addToBackStack(null).commit();
     }
 
 }

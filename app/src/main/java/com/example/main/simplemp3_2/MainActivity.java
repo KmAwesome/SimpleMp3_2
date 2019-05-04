@@ -1,5 +1,6 @@
 package com.example.main.simplemp3_2;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,12 +8,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -76,14 +81,18 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
             if (!isRunning) {
                 mp3Start.run();
+                isRunning = true;
             }
+
             if (intent.getAction().equals(ACTION_PAUSE)) {
                 btnPlaySong.setImageResource(R.drawable.main_btn_play);
             }else if (intent.getAction().equals(ACTION_PLAY)) {
                 btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
+
             mp3ProgressBar.setMax(musicController.getSongDuration());
             mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
             txvSongTitle.setText(intent.getStringExtra("songTitle"));
@@ -96,13 +105,14 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             try {
                 //if (!isBackground) {
-                    isRunning = true;
-                    if (musicController.isPlaying()) {
-                        mp3ProgressBar.setMax(musicController.getSongDuration());
-                        mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
-                        btnPlaySong.setImageResource(R.drawable.main_btn_pause);
-                    }
+
+                if (musicController.isPlaying()) {
+                    mp3ProgressBar.setMax(musicController.getSongDuration());
+                    mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
+                    btnPlaySong.setImageResource(R.drawable.main_btn_pause);
+                }
                 //}
+                musicController.updateRepeatImgButtonView(btnRepeat);
                 musicHandler.postDelayed(this, 50);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -150,10 +160,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(UIbroadcastReceiver);
-        if (musicController != null) {
-            musicHandler.removeCallbacks(mp3Start);
-            musicController.unbindMusicService();
+
+        try {
+            if (UIbroadcastReceiver != null){
+                unregisterReceiver(UIbroadcastReceiver);
+            }
+
+            if (musicController != null) {
+                musicHandler.removeCallbacks(mp3Start);
+                musicController.unbindMusicService();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -330,6 +348,7 @@ public class MainActivity extends AppCompatActivity {
         mp3ProgressBar = findViewById(R.id.mp3_seekbar);
 
         txvSongTitle.setSelected(true);
+
     }
 
     View.OnClickListener controlListener = new View.OnClickListener() {
@@ -367,7 +386,6 @@ public class MainActivity extends AppCompatActivity {
     public void refreshAllFragment() {
         pagerAdapter.refreshAllFragment();;
     }
-
 }
 
 
