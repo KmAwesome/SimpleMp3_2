@@ -26,3 +26,5 @@
 
 # Developed By
 
+吳忠勇 - DanielWu - livenow26@gmail.com
+
