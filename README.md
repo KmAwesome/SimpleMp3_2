@@ -22,7 +22,7 @@
 
 # Screenshots
 
-![image](https://github.com/KmAwesome/SimpleMp3_2/blob/master/1232.png)
+![image](https://github.com/KmAwesome/SimpleMp3_2/blob/master/back_ground.jpg)
 
 # Developed By
 
