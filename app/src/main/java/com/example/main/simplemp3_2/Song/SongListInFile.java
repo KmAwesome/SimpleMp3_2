@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,7 +24,32 @@ public class SongListInFile {
         initSongList = new InitSongList(context);
     }
 
-    public ArrayList<String> readTitleListInFile() {
+    public void setTitleListFile(String title) {
+        ArrayList<String> songTitleList = getTitleListFile();
+        if (!songTitleList.contains(title) && title.length() > 0) {
+            songTitleList.add(title);
+            Log.i(TAG, "setTitleListFile: " + songTitleList);
+            try {
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("TitleList.bin",Context.MODE_PRIVATE));
+                objectOutputStream.writeObject(songTitleList);
+                objectOutputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void setTitleListFile(ArrayList<String> titles) {
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("TitleList.bin",Context.MODE_PRIVATE));
+            objectOutputStream.writeObject(titles);
+            objectOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<String> getTitleListFile() {
         ArrayList<String> stringTitles = new ArrayList<>();
         File file = context.getFileStreamPath("TitleList.bin");
         if (file.exists()){
@@ -35,32 +62,33 @@ public class SongListInFile {
         return stringTitles;
     }
 
-    public void writeTitleListToFile(String title) {
-        ArrayList<String> songTitleList = readTitleListInFile();
-        if (!songTitleList.contains(title) && title.length() > 0) {
-            songTitleList.add(title);
-            writeFile(songTitleList);
+    public void setSongListFile(String songTitle, ArrayList<String> songStringList) {
+
+        ArrayList<String> songs = readSongListInFile(songTitle);
+
+        for (int i=0; i<songs.size(); i++) {
+            if (!songStringList.contains(songs.get(i))) {
+                songStringList.add(songs.get(i));
+            }
         }
-    }
 
-    public void writeTitleListToFile(ArrayList<String> titles) {
-        writeFile(titles);
-    }
+        Log.i(TAG, "setSongListFile: " + songStringList);
 
-    private void writeFile(ArrayList<String> songTitleList) {
         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput("TitleList.bin",Context.MODE_PRIVATE));
-            objectOutputStream.writeObject(songTitleList);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(songTitle + ".bin",Context.MODE_PRIVATE));
+            objectOutputStream.writeObject(songStringList);
             objectOutputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
-    public ArrayList<Song> getSongListInFile(String songTitle) {
+
+    public ArrayList<Song> getSongListFile(String songTitle) {
+
         if (songList != null) {
             songList.clear();
-        };
+        }
+
         ArrayList<Song> songs = initSongList.getSongList();
         ArrayList<String> songTitles = readSongListInFile(songTitle);
         for (String s : songTitles) {
@@ -73,32 +101,15 @@ public class SongListInFile {
         return songList;
     }
 
-    public void writeSongListToFile(String songTitle, ArrayList<String> songStringList) {
+    public void removeSongListFile(String songTitle) {
         try {
-            ArrayList<String> songs = readSongListInFile(songTitle);
-            for (int i=0; i<songStringList.size(); i++) {
-                if (!songStringList.contains(songs.get(i))) {
-                    songStringList.add(songs.get(i));
-                }
+            File file = context.getFileStreamPath(songTitle + ".bin");
+            if (file.exists()) {
+                file.delete();
             }
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(context.openFileOutput(songTitle + ".bin",Context.MODE_PRIVATE));
-            objectOutputStream.writeObject(songStringList);
-            objectOutputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private ArrayList<String> readSongListInFile(String songTitle) {
-        ArrayList<String> songStringList = new ArrayList<>();
-        try {
-            InputStream inputStream = context.openFileInput(songTitle + ".bin");
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-            songStringList = (ArrayList<String>) objectInputStream.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return songStringList;
     }
 
     public void removeSongInPlayList(String playListTitle, String songTitle) {
@@ -117,14 +128,17 @@ public class SongListInFile {
         }
     }
 
-    public void removeSongListInFile(String songTitle) {
+    private ArrayList<String> readSongListInFile(String songTitle) {
+        ArrayList<String> songStringList = new ArrayList<>();
         try {
-            File file = context.getFileStreamPath(songTitle + ".bin");
-            if (file.exists()) {
-                file.delete();
-            }
+            InputStream inputStream = context.openFileInput(songTitle + ".bin");
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            songStringList = (ArrayList<String>) objectInputStream.readObject();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return songStringList;
     }
+
+
 }

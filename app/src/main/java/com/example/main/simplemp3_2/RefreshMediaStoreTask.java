@@ -8,11 +8,11 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 import java.io.File;
 
-public class MyTask extends AsyncTask<Void, Void, Void> {
+public class RefreshMediaStoreTask extends AsyncTask<Void, Void, Void> {
     private Context context;
     private String path = Environment.getExternalStorageDirectory().toString();
 
-    public MyTask(Context context) {
+    public RefreshMediaStoreTask(Context context) {
         this.context = context;
     }
 

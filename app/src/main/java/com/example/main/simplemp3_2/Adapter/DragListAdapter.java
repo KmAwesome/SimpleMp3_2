@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Adapter;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,6 +16,9 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
+import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.MusicInfoActivity;
+import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Service.MusicService;
 import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Song.MusicControl;
@@ -186,7 +189,7 @@ public class DragListAdapter extends BaseAdapter implements View.OnClickListener
             songTitles.add(songList.get(i).getTitle());
         }
         SongListInFile songListInFile = new SongListInFile(context);
-        songListInFile.writeSongListToFile(playListTitle, songTitles);
+        songListInFile.setSongListFile(playListTitle, songTitles);
     }
 
 }

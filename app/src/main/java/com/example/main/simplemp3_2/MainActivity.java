@@ -1,6 +1,7 @@
 package com.example.main.simplemp3_2;
 
 import android.Manifest;
+import android.appwidget.AppWidgetProvider;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -42,6 +43,8 @@ import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Dialog.CountDownDialog;
 import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
+import com.example.main.simplemp3_2.Widget.AppWidgetProviderController;
+
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_START;
 import static com.example.main.simplemp3_2.Song.InitSongList.musicFilter;
@@ -54,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
     private InitSongList initSongList;
     private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
-    private static Handler musicHandler = new Handler();
+    private Handler musicHandler = new Handler();
     //private static Handler musicScanHanlder = new Handler();
     private PagerAdapter pagerAdapter;
     private DrawerLayout drawerLayout;
     private RelativeLayout relativeLayout;
-    private LinearLayout songViewLinearLayout;
+    private LinearLayout controlLayout ;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private View view;
@@ -84,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
 
             if (!isRunning) {
                 mp3Start.run();
-                isRunning = true;
             }
 
             if (intent.getAction().equals(ACTION_PAUSE)) {
@@ -103,20 +105,14 @@ public class MainActivity extends AppCompatActivity {
     private Runnable mp3Start = new Runnable() {
         @Override
         public void run() {
-            try {
-                //if (!isBackground) {
-
-                if (musicController.isPlaying()) {
-                    mp3ProgressBar.setMax(musicController.getSongDuration());
-                    mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
-                    btnPlaySong.setImageResource(R.drawable.main_btn_pause);
-                }
-                //}
-                musicController.updateRepeatImgButtonView(btnRepeat);
-                musicHandler.postDelayed(this, 50);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (musicController.isPlaying()) {
+                mp3ProgressBar.setMax(musicController.getSongDuration());
+                mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
+                btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
+            isRunning = true;
+            musicController.updateRepeatImgButtonView(btnRepeat);
+            musicHandler.postDelayed(this, 50);
         }
     };
 
@@ -160,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         try {
             if (UIbroadcastReceiver != null){
                 unregisterReceiver(UIbroadcastReceiver);
@@ -333,14 +328,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initView() {
-        songViewLinearLayout = findViewById(R.id.songview_linearlayout);
+        controlLayout = findViewById(R.id.music_control_layout);
         btnPlaySong = findViewById(R.id.imgbtn_play);
         btnPlayNext = findViewById(R.id.imgbtn_next);
         btnRepeat = findViewById(R.id.btnRepeat);
         txvSongTitle = findViewById(R.id.txv_title);
         txvSongArtist = findViewById(R.id.txv_artist);
-
-        songViewLinearLayout.setOnClickListener(controlListener);
+        controlLayout .setOnClickListener(controlListener);
         btnPlaySong.setOnClickListener(controlListener);
         btnPlayNext.setOnClickListener(controlListener);
         btnRepeat.setOnClickListener(controlListener);
@@ -371,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.btnRepeat:
                     musicController.setRepeatMode(view);
                     break;
-                case R.id.songview_linearlayout:
+                case R.id.music_control_layout:
                     Intent intent = new Intent(MainActivity.this, PlayActivity.class);
                     startActivity(intent);
                     break;

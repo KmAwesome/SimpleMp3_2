@@ -56,7 +56,7 @@ public class PlayListAdapter extends BaseAdapter {
         txvPlayListTitle.setText(songTitleList.get(i));
 
         txvPlayListNum = view.findViewById(R.id.txv_playlist_num);
-        txvPlayListNum.setText("曲目  " + songListInFile.getSongListInFile(songTitleList.get(i)).size());
+        txvPlayListNum.setText("曲目  " + songListInFile.getSongListFile(songTitleList.get(i)).size());
 
         imgbtnSetting = view.findViewById(R.id.imgbtn_playlist_setting);
         imgbtnSetting.setTag(i);
@@ -81,9 +81,9 @@ public class PlayListAdapter extends BaseAdapter {
                         playAllSongsInPlayList(postion);
                         break;
                     case R.id.deletePlayList:
-                        songListInFile.removeSongListInFile(songTitleList.get(postion));
+                        songListInFile.removeSongListFile(songTitleList.get(postion));
                         songTitleList.remove(postion);
-                        songListInFile.writeTitleListToFile(songTitleList);
+                        songListInFile.setTitleListFile(songTitleList);
                         notifyDataSetChanged();
                         break;
                 }
@@ -94,7 +94,7 @@ public class PlayListAdapter extends BaseAdapter {
     }
 
     private void playAllSongsInPlayList(int postion) {
-        ArrayList<Song> songlist = songListInFile.getSongListInFile(songTitleList.get(postion));
+        ArrayList<Song> songlist = songListInFile.getSongListFile(songTitleList.get(postion));
         if (songlist.size() > 0) {
             musicController.setSongList(songlist);
             musicController.setSongIndex(0);

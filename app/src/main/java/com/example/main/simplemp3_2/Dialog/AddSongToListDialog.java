@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 
 import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.MainActivity;
@@ -58,8 +59,8 @@ public class AddSongToListDialog extends DialogFragment {
         builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                SongListInFile songListInFile = new SongListInFile(getActivity());
-                songListInFile.writeSongListToFile(playListTitle, addedTitles);
+                SongListInFile songListInFile = new SongListInFile(context);
+                songListInFile.setSongListFile(playListTitle, addedTitles);
                 if (context instanceof MainActivity) {
                     ((MainActivity)context).refreshAllFragment();
                 }

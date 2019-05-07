@@ -27,7 +27,7 @@
             android:layout_height="2dp" />
 
         <LinearLayout
-            android:id="@+id/songview_linearlayout"
+            android:id="@+id/music_control_layout"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:orientation="horizontal">

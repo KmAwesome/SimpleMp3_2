@@ -52,7 +52,7 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
                 alertDialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        songListInFile.writeTitleListToFile(editText.getText().toString());
+                        songListInFile.setTitleListFile(editText.getText().toString());
                         AddSongToListDialog addSongToListDialog = new AddSongToListDialog();
                         addSongToListDialog.setPlayListTitle(editText.getText().toString());
                         addSongToListDialog.show(getActivity().getSupportFragmentManager(), null);
@@ -78,7 +78,7 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onStart() {
         super.onStart();
-        songTitleList = songListInFile.readTitleListInFile();
+        songTitleList = songListInFile.getTitleListFile();
         playListAdapter = new PlayListAdapter(context, songTitleList);
         playListView.setAdapter(playListAdapter);
     }
@@ -86,7 +86,7 @@ public class PlayListFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable("playSongList", songListInFile.getSongListInFile(songTitleList.get(i)));
+        bundle.putSerializable("playSongList", songListInFile.getSongListFile(songTitleList.get(i)));
         bundle.putString("playListTitle", songTitleList.get(i));
         DragSongFragment dragSongFragment = new DragSongFragment();
         dragSongFragment.setArguments(bundle);

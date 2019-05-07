@@ -1,33 +1,13 @@
 package com.example.main.simplemp3_2.Dialog;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.database.Cursor;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.webkit.MimeTypeMap;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MyTask;
 import com.example.main.simplemp3_2.Song.InitSongList;
-import com.example.main.simplemp3_2.Song.Song;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class SongFilterDialog extends AlertDialog.Builder {
     private final String TAG = "SongFilterDialog";

@@ -10,11 +10,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.example.main.simplemp3_2.Adapter.SongAdapter;
-import com.example.main.simplemp3_2.DragListAdapter;
+import com.example.main.simplemp3_2.Adapter.DragListAdapter;
 import com.example.main.simplemp3_2.MainActivity;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Song.Song;
 

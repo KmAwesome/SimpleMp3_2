@@ -39,7 +39,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/example_appwidget_info"/>
+                android:resource="@xml/appwidget_info"/>
         </receiver>
 
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver" >

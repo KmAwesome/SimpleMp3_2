@@ -23,7 +23,6 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -100,12 +99,12 @@ public class MusicService extends Service implements MusicControl {
     }
 
     public void updateActivityUi(@Action String action) {
+        updateActivityUiIntent.setAction(action);
         if (songList.size() > 0) {
-            updateActivityUiIntent.setAction(action);
             updateActivityUiIntent.putExtra("songTitle", song.getTitle());
             updateActivityUiIntent.putExtra("songArtist", song.getArtist());
-            sendBroadcast(updateActivityUiIntent);
         }
+        sendBroadcast(updateActivityUiIntent);
     }
 
     public void initHeadsetControllReceiver() {
@@ -441,6 +440,7 @@ public class MusicService extends Service implements MusicControl {
     }
 
     public void updateWidget(@Action String action) {
+
         if (songList.size() > 0) {
             Song song = songList.get(getSongIndex());
             editor.putInt("numOfSongs", songList.size());
@@ -458,6 +458,7 @@ public class MusicService extends Service implements MusicControl {
             editor.putBoolean("isPlay", false);
         }
         editor.apply();
+
         Intent intent = new Intent(this, AppWidgetProviderController.class);
         intent.setAction(action);
         sendBroadcast(intent);
@@ -477,7 +478,7 @@ public class MusicService extends Service implements MusicControl {
         public MusicControlNotification(Context context) {
             this.context = context.getApplicationContext();
 
-            mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.notification_mp3_control);
+            mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.notification_mp3_controller);
             mNotificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 
             Intent intent = new Intent(context, MainActivity.class);

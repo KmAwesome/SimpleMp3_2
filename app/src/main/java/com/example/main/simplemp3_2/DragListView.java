@@ -15,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
+import com.example.main.simplemp3_2.Adapter.DragListAdapter;
+
 
 public class DragListView extends ListView {
     private final String TAG = "DragListView";
