@@ -19,8 +19,8 @@ public class SongListInFile {
     private InitSongList initSongList;
 
     public SongListInFile(Context context) {
-        songList = new ArrayList<>();
         this.context = context;
+        songList = new ArrayList<>();
         initSongList = new InitSongList(context);
     }
 

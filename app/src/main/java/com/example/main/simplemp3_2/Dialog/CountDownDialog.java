@@ -9,12 +9,14 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.R;
 
@@ -36,7 +38,11 @@ public class CountDownDialog extends DialogFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        musicController = new MusicController(context);
+        if (getActivity() instanceof MainActivity) {
+            musicController = ((MainActivity) getActivity()).getMusicController();
+        }else {
+            musicController = new MusicController(context);
+        }
     }
 
     @NonNull

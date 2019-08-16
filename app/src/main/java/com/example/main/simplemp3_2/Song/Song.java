@@ -1,5 +1,7 @@
 package com.example.main.simplemp3_2.Song;
 
+import android.widget.ImageView;
+
 import java.io.Serializable;
 
 /**
@@ -10,6 +12,7 @@ public class Song implements Serializable {
     private long id;
     private String title, artist, path, album, style, date;
     private long duration;
+    private int index;
 
     public Song(long songID, String songTtile, String songArtist, long songDuration, String songPath, String songAlbum, String songStyle, String songDate){
         id = songID;
@@ -48,5 +51,11 @@ public class Song implements Serializable {
         return date;
     }
 
+    public int getIndex() {
+        return index;
+    }
 
+    public void setIndex(int index) {
+        this.index = index;
+    }
 }

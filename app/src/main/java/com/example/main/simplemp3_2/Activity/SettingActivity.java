@@ -1,14 +1,17 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Activity;
 
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
 
@@ -48,7 +51,13 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         switch (view.getId()){
             case R.id.music_filter_description:
                 SongFilterDialog songFilterDialog = new SongFilterDialog(SettingActivity.this);
-                songFilterDialog.setUpdateView(txvMusicFilterTime);
+                songFilterDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        Log.i(TAG, "onDismiss:  " + initSongList.getFilterTime());
+                        txvMusicFilterTime.setText(initSongList.getFilterTime());
+                    }
+                });
                 songFilterDialog.show();
                 break;
         }

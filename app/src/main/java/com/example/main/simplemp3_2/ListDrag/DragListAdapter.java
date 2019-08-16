@@ -1,11 +1,10 @@
-package com.example.main.simplemp3_2.Adapter;
+package com.example.main.simplemp3_2.ListDrag;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,10 +15,9 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
-import com.example.main.simplemp3_2.MainActivity;
-import com.example.main.simplemp3_2.MusicInfoActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
+import com.example.main.simplemp3_2.Activity.MusicInfoActivity;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Service.MusicService;
 import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Song.MusicControl;
 import com.example.main.simplemp3_2.Song.Song;

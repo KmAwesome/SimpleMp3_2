@@ -7,5 +7,8 @@
     <item
         android:id="@+id/addToList"
         android:title="新增至播放清單"/>
+    <item
+        android:id="@+id/rename"
+        android:title="編輯標籤"/>
 
 </menu>

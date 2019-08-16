@@ -3,12 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.PlayFragment">
+    tools:context=".ListPlaying.PlayFragment">
 
-    <com.example.main.simplemp3_2.DragListView
+    <com.example.main.simplemp3_2.ListDrag.DragListView
         android:id="@+id/drag_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.example.main.simplemp3_2.DragListView>
+    </com.example.main.simplemp3_2.ListDrag.DragListView>
 
 </FrameLayout>

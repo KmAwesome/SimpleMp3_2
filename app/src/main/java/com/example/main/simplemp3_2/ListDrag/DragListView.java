@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.ListDrag;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,7 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-import com.example.main.simplemp3_2.Adapter.DragListAdapter;
+import com.example.main.simplemp3_2.ListDrag.DragListAdapter;
+import com.example.main.simplemp3_2.R;
 
 
 public class DragListView extends ListView {

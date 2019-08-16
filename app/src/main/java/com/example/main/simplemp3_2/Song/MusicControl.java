@@ -34,4 +34,6 @@ public interface MusicControl {
     void setSongListShuffle();
 
     void updateWidget(String action);
+
+    void releaseMediaPlayer();
 }

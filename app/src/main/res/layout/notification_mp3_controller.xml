@@ -30,7 +30,6 @@
                 android:layout_weight="1"
                 android:gravity="bottom"
                 android:singleLine="true"
-                android:text="TextView"
                 android:textColor="@color/colorTextTitle" />
 
             <TextView
@@ -38,8 +37,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="TextView"
-                android:singleLine="true"/>
+                android:singleLine="true"
+                android:textColor="@color/colorTextTitle" />
         </LinearLayout>
 
         <ImageButton

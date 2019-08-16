@@ -7,12 +7,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Service.MusicService;
 
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;

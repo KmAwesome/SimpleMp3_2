@@ -8,10 +8,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 
 import com.example.main.simplemp3_2.Song.InitSongList;
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Song.Song;
 import com.example.main.simplemp3_2.Song.SongListInFile;
 

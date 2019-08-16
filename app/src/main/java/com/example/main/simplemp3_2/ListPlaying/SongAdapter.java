@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2.Adapter;
+package com.example.main.simplemp3_2.ListPlaying;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,39 +15,33 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import com.example.main.simplemp3_2.Song.InitSongList;
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
+import com.example.main.simplemp3_2.Song.MusicControl;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;
 import com.example.main.simplemp3_2.Song.Song;
-import com.example.main.simplemp3_2.MusicInfoActivity;
+import com.example.main.simplemp3_2.Activity.MusicInfoActivity;
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Song.SongListInFile;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
 
-/**
- * Created by main on 2018/2/17.
- */
-
 public class SongAdapter extends BaseAdapter {
     private static String TAG = "SongAdapter";
-    private LayoutInflater songInf;
+    private InitSongList initSongList;
+    private MusicController musicController;
     private Context context;
     private ArrayList<Song> songlist;
     private int m_position;
-    private InitSongList initSongList;
-    private MusicController musicController;
 
     public SongAdapter(Context context, ArrayList<Song> songlist) {
         this.context = context;
-        songInf = LayoutInflater.from(context);
         this.songlist = songlist;
-        initSongList = new InitSongList(context);
-        if (context instanceof MainActivity)
-            musicController = ((MainActivity)context).getMusicController();
+        initSongList = ((MainActivity)context).getInitSongList();
+        musicController = ((MainActivity)context).getMusicController();
     }
 
     @Override
@@ -65,35 +59,25 @@ public class SongAdapter extends BaseAdapter {
         return 0;
     }
 
-    private class ViewHolder  {
-        public ImageButton songSetting;
-        public TextView songView, artistView, durationView;
-
-        public ViewHolder(TextView m_songView, TextView m_artistView,
-                          TextView m_durationView, ImageButton m_songSetting) {
-            songView = m_songView;
-            artistView = m_artistView;
-            durationView = m_durationView;
-            songSetting = m_songSetting;
-            songSetting.setOnClickListener(onClickListener);
-        }
+    static class ViewHolder  {
+        ImageButton btnSetting;
+        TextView songView, artistView, durationView;
     }
 
     @Override
     public View getView(final int position, View converView, ViewGroup parent) {
         final ViewHolder holder;
         if (converView == null) {
-            converView = songInf.inflate(R.layout.item_song, null);
-            TextView songView = converView.findViewById(R.id.song_titile);
-            TextView artistView = converView.findViewById(R.id.song_artist);
-            TextView durationView = converView.findViewById(R.id.song_duration);
-            ImageButton songSetting = converView.findViewById(R.id.song_setting);
-            holder = new ViewHolder(songView, artistView, durationView, songSetting);
+            holder = new ViewHolder();
+            converView = LayoutInflater.from(context).inflate(R.layout.item_song, null);
+            holder.songView = converView.findViewById(R.id.song_titile);
+            holder.artistView = converView.findViewById(R.id.song_artist);
+            holder.durationView = converView.findViewById(R.id.song_duration);
+            holder.btnSetting = converView.findViewById(R.id.song_setting);
             converView.setTag(holder);
         } else {
             holder = (ViewHolder) converView.getTag();
         }
-        holder.songSetting.setTag(position);
         Song currItemSong = songlist.get(position);
         holder.songView.setText(currItemSong.getTitle());
         holder.artistView.setText(currItemSong.getArtist());
@@ -101,6 +85,8 @@ public class SongAdapter extends BaseAdapter {
                 TimeUnit.MILLISECONDS.toSeconds(currItemSong.getDuration()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currItemSong.getDuration()))
         );
         holder.durationView.setText(sDuration);
+        holder.btnSetting.setTag(position);
+        holder.btnSetting.setOnClickListener(onClickListener);
         return converView;
     }
 
@@ -114,6 +100,10 @@ public class SongAdapter extends BaseAdapter {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
+                        case R.id.play:
+                            musicController.setSongIndex(m_position);
+                            musicController.playSong();
+                            break;
                         case R.id.musicInfo:
                             musicInfo(m_position);
                             break;
@@ -150,42 +140,27 @@ public class SongAdapter extends BaseAdapter {
     };
 
     private void musicInfo(int pos) {
-        Song mysong = songlist.get(pos);
+        Song songItem = songlist.get(pos);
         Intent intent = new Intent();
         intent.setClass(context, MusicInfoActivity.class);
-        intent.putExtra("Title", mysong.getTitle());
-        intent.putExtra("Artist", mysong.getArtist());
-        intent.putExtra("Album", mysong.getAlbum());
-        intent.putExtra("Id", mysong.getId());
-        intent.putExtra("Duration", mysong.getDuration());
-        intent.putExtra("Path", mysong.getPath());
+        intent.putExtra("Title", songItem.getTitle());
+        intent.putExtra("Artist", songItem.getArtist());
+        intent.putExtra("Album", songItem.getAlbum());
+        intent.putExtra("Id", songItem.getId());
+        intent.putExtra("Duration", songItem.getDuration());
+        intent.putExtra("Path", songItem.getPath());
         intent.putExtra("Pos", pos);
-        intent.putExtra("Style", mysong.getStyle());
+        intent.putExtra("Style", songItem.getStyle());
         context.startActivity(intent);
     }
 
     private void deleteSong(String musicPath, int i) {
         File file = new File(musicPath);
-        
         if (file.exists()) {
             file.delete();
-
-            if (musicController.getSongIndex() == i) {
-                if (musicController.isPlaying()) {
-                    musicController.pauseSong();
-                }
-            }
-
             songlist.remove(i);
-
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
-
-            songlist = initSongList.getSongList();
-
             musicController.setSongList(songlist);
-            if (musicController.getSongList().size() == 0) {
-                musicController.updateWidget(ACTION_PAUSE);
-            }
         }
     }
 

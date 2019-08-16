@@ -1,24 +1,20 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Activity;
 
-import android.Manifest;
-import android.appwidget.AppWidgetProvider;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -38,12 +34,14 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import com.example.main.simplemp3_2.Adapter.PagerAdapter;
+
+import com.example.main.simplemp3_2.R;
+import com.example.main.simplemp3_2.Service.MusicService;
+import com.example.main.simplemp3_2.ViewPager.PagerAdapter;
 import com.example.main.simplemp3_2.Song.InitSongList;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Dialog.CountDownDialog;
 import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
-import com.example.main.simplemp3_2.Widget.AppWidgetProviderController;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static com.example.main.simplemp3_2.Service.MusicService.ACTION_START;
@@ -58,11 +56,10 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
     private Handler musicHandler = new Handler();
-    //private static Handler musicScanHanlder = new Handler();
     private PagerAdapter pagerAdapter;
     private DrawerLayout drawerLayout;
     private RelativeLayout relativeLayout;
-    private LinearLayout controlLayout ;
+    public LinearLayout controlLayout ;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private View view;
@@ -99,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
             mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
             txvSongTitle.setText(intent.getStringExtra("songTitle"));
             txvSongArtist.setText(intent.getStringExtra("songArtist"));
+
+            pagerAdapter.updateLogoView(tabLayout.getSelectedTabPosition());
+
         }
     };
 
@@ -115,23 +115,6 @@ public class MainActivity extends AppCompatActivity {
             musicHandler.postDelayed(this, 50);
         }
     };
-
-    /*
-    Runnable musicScanRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                if (!isBackground) {
-                    num++;
-                    Log.i(TAG, "run: " + musicScanHanlder + " , " + musicController.getSongList().size() + ", " + num);
-                }
-                musicScanHanlder.postDelayed(this, 1000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    };
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,12 +171,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Log.i(TAG, "PERMISSION_GRANTED");
                 musicController = new MusicController(this);
-                initSongList = new InitSongList(this);
-                initToolBar();
-                initDrawer();
-                initTabLayout();
-                initView();
-                initUpdateUiReceiver();
+                initUserLayout();
             }
         }
     }
@@ -204,24 +182,27 @@ public class MainActivity extends AppCompatActivity {
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.i(TAG, "PERMISSION_GRANTED");
             musicController = new MusicController(this);
-            initSongList = new InitSongList(this);
-            initToolBar();
-            initDrawer();
-            initTabLayout();
-            initView();
-            initUpdateUiReceiver();
+            initUserLayout();
         }else {
             finish();
         }
     }
 
+    public void initUserLayout() {
+        initSongList = new InitSongList(this);
+        initToolBar();
+        initDrawer();
+        initTabLayout();
+        initView();
+        initUpdateUiReceiver();
+    }
+
     private void initToolBar() {
+
         toolbar = findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.toolbar_main_menu);
 
-        SharedPreferences sharedPreferences = getSharedPreferences(musicFilter, Context.MODE_PRIVATE);
-        String sortString = sharedPreferences.getString("SORTSTRING", "排列");
-        toolbar.getMenu().findItem(R.id.menu_sort).setTitle(sortString);
+        toolbar.getMenu().findItem(R.id.menu_sort).setTitle(initSongList.getSortName());
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -236,14 +217,14 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 if (i == 0) {
                                     item.setTitle(srot[i]);
-                                    initSongList.setSortBy(InitSongList.sortBy.sortByDefault);
+                                    initSongList.sortByDefalut();
                                 }else if (i == 1) {
                                     item.setTitle(srot[i]);
-                                    initSongList.setSortBy(InitSongList.sortBy.sortByDate);
+                                    initSongList.sortByDate();
                                 }
                                 initSongList.saveData();
                                 initSongList.initSongList();
-                                pagerAdapter.refreshAllFragment();
+                                refreshAllFragment();
                             }
                         }).show();
                         break;
@@ -375,6 +356,10 @@ public class MainActivity extends AppCompatActivity {
 
     public MusicController getMusicController() {
         return musicController;
+    }
+
+    public InitSongList getInitSongList() {
+        return initSongList;
     }
 
     public void refreshAllFragment() {

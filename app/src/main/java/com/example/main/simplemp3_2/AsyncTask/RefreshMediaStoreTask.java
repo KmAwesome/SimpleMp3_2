@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.AsyncTask;
 import android.content.Context;
 import android.media.MediaScannerConnection;
 import android.net.Uri;

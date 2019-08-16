@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2.Adapter;
+package com.example.main.simplemp3_2.ListStyle;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,7 +10,7 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;

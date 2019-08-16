@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,20 +8,17 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.main.simplemp3_2.Dialog.CountDownDialog;
+import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Song.Song;
 import com.example.main.simplemp3_2.Dialog.SelectPlayListFragmentDialog;

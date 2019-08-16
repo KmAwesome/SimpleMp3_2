@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".Activity.MainActivity">
 
     <RelativeLayout
         android:id="@+id/relativLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="1">
+        android:layout_height="match_parent">
     </RelativeLayout>
 
     <LinearLayout
+        android:id="@+id/music_control_layout"
         android:layout_width="match_parent"
         android:layout_height="60dp"
+        android:layout_gravity="bottom"
         android:orientation="vertical">
 
         <ProgressBar
@@ -27,7 +25,6 @@
             android:layout_height="2dp" />
 
         <LinearLayout
-            android:id="@+id/music_control_layout"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:orientation="horizontal">
@@ -94,4 +91,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>

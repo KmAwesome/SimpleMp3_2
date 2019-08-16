@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2;
+package com.example.main.simplemp3_2.Activity;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.example.main.simplemp3_2.R;
 
 
 public class MusicInfoActivity extends AppCompatActivity {

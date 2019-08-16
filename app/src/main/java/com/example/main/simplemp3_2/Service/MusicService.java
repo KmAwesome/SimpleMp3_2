@@ -31,7 +31,7 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.example.main.simplemp3_2.Song.InitSongList;
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Widget.AppWidgetProviderController;
 import com.example.main.simplemp3_2.Song.MusicControl;
 import com.example.main.simplemp3_2.Song.Song;
@@ -42,47 +42,34 @@ import java.util.Collections;
 
 
 public class MusicService extends Service implements MusicControl {
-    private final String TAG = "MusicService";
-
     public final IBinder musicBind = new MusicBinder();
-
+    public final static String ACTION_PLAY = "ACTION_PLAY";
+    public final static String ACTION_PAUSE = "ACTION_PAUSE";
+    public final static String ACTION_START = "ACTION_START";
+    private final String TAG = "MusicService";
     private final String MODE_REPEAT_ALL = "MODE_REPEAT_ALL";
     private final String MODE_REPEAT_ONE = "MODE_REPEAT_ONE";
     private final String MODE_SHUFFLE = "MODE_SHUFFLE";
     private final String MODE_REPEAT = "MODE_REPEAT";
-
-    public final static String ACTION_PLAY = "ACTION_PLAY";
-    public final static String ACTION_PAUSE = "ACTION_PAUSE";
-    public final static String ACTION_START = "ACTION_START";
-
     private static String repeatMode = "MODE_REPEAT_ALL";
-
     private static boolean isPause;
-
     private MusicControlNotification musicControlNotification;
-
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+    private MediaSessionCompat mediaSessionCompat;
     private InitSongList initSongList;
-    private MediaPlayer player;
+    private MediaPlayer mediaPlayer;
+    private Toast toast;
     private Intent updateActivityUiIntent;
     private ArrayList<Song> songList;
     private ArrayList<Integer> shuffledList;
     private Song song;
     private int songIndex;
     private int shuffledIndex;
-    private Toast toast;
-
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
-
-    private MediaSessionCompat mediaSessionCompat;
-
-    @StringDef({ACTION_PLAY, ACTION_PAUSE, ACTION_START})
-    public @interface Action{}
 
     public class MusicBinder extends Binder {
         public MusicService getService() {
             Log.i(TAG, "MUSIC_BIND_SUCCESS");
-            updateActivityUi(ACTION_START);
             initHeadsetControllReceiver();
             return MusicService.this;
         }
@@ -98,12 +85,15 @@ public class MusicService extends Service implements MusicControl {
         return false;
     }
 
+    @StringDef({ACTION_PLAY, ACTION_PAUSE, ACTION_START})
+    public @interface Action{}
+
     public void updateActivityUi(@Action String action) {
-        updateActivityUiIntent.setAction(action);
         if (songList.size() > 0) {
             updateActivityUiIntent.putExtra("songTitle", song.getTitle());
             updateActivityUiIntent.putExtra("songArtist", song.getArtist());
         }
+        updateActivityUiIntent.setAction(action);
         sendBroadcast(updateActivityUiIntent);
     }
 
@@ -137,7 +127,6 @@ public class MusicService extends Service implements MusicControl {
     @Override
     public void onCreate() {
         super.onCreate();
-
         initSongList = new InitSongList(this);
         songList = initSongList.getSongList();
         setSongListShuffle();
@@ -152,28 +141,28 @@ public class MusicService extends Service implements MusicControl {
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         audioManager.requestAudioFocus(onAudioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
-        player = new MediaPlayer();
-        player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
                 mediaPlayer.start();
             }
         });
 
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 mediaPlayer.reset();
                 if (repeatMode.equals(MODE_REPEAT) && songIndex == songList.size()-1) {
                     try {
                         songIndex = 0;
-                        player.reset();
+                        mediaPlayer.reset();
                         song = songList.get(songIndex);
                         long currSong = song.getId();
                         Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
-                        player.setDataSource(getApplicationContext(), trackUri);
+                        mediaPlayer.setDataSource(getApplicationContext(), trackUri);
                         updateActivityUi(ACTION_PAUSE);
                         updateWidget(ACTION_PAUSE);
                         musicControlNotification.updateNotificationUI("Pause");
@@ -187,7 +176,7 @@ public class MusicService extends Service implements MusicControl {
             }
         });
 
-        player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
                 mediaPlayer.reset();
@@ -201,7 +190,7 @@ public class MusicService extends Service implements MusicControl {
                 song = songList.get(songIndex);
                 long currSong = song.getId();
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
-                player.setDataSource(getApplicationContext(), trackUri);
+                mediaPlayer.setDataSource(getApplicationContext(), trackUri);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -257,12 +246,12 @@ public class MusicService extends Service implements MusicControl {
     public void playSong() {
         try {
             if (songList.size() > 0) {
-                player.reset();
+                mediaPlayer.reset();
                 song = songList.get(songIndex);
                 long currSong = song.getId();
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
-                player.setDataSource(getApplicationContext(), trackUri);
-                player.prepareAsync();
+                mediaPlayer.setDataSource(getApplicationContext(), trackUri);
+                mediaPlayer.prepareAsync();
                 updateActivityUi(ACTION_PLAY);
                 updateWidget(ACTION_PLAY);
                 musicControlNotification.updateNotificationUI("Play");
@@ -276,7 +265,7 @@ public class MusicService extends Service implements MusicControl {
     @Override
     public void pauseSong() {
         if (songList.size() > 0) {
-            player.pause();
+            mediaPlayer.pause();
             updateActivityUi(ACTION_PAUSE);
             updateWidget(ACTION_PAUSE);
             musicControlNotification.updateNotificationUI("Pause");
@@ -287,7 +276,7 @@ public class MusicService extends Service implements MusicControl {
     @Override
     public void continueSong() {
         if (songList.size() > 0) {
-            player.start();
+            mediaPlayer.start();
             updateWidget(ACTION_PLAY);
             musicControlNotification.updateNotificationUI("Play");
             isPause = false;
@@ -345,7 +334,7 @@ public class MusicService extends Service implements MusicControl {
 
     @Override
     public boolean isPlaying() {
-        return player.isPlaying();
+        return mediaPlayer.isPlaying();
     }
 
     @Override
@@ -360,12 +349,12 @@ public class MusicService extends Service implements MusicControl {
 
     @Override
     public void setSongPlayingPosition(int posn) {
-        player.seekTo(posn);
+        mediaPlayer.seekTo(posn);
     }
 
     @Override
     public int getSongPlayingPosition() {
-        return player.getCurrentPosition();
+        return mediaPlayer.getCurrentPosition();
     }
 
     @Override
@@ -380,10 +369,10 @@ public class MusicService extends Service implements MusicControl {
 
     @Override
     public int getSongDuration() {
-        if (player.getCurrentPosition() == 0) {
+        if (mediaPlayer.getCurrentPosition() == 0) {
             return 0;
         }
-        return player.getDuration();
+        return mediaPlayer.getDuration();
     }
 
     @Override
@@ -439,8 +428,9 @@ public class MusicService extends Service implements MusicControl {
         Log.i(TAG, "setSongListShuffle: " + shuffledList);
     }
 
-    public void updateWidget(@Action String action) {
 
+
+    public void updateWidget(@Action String action) {
         if (songList.size() > 0) {
             Song song = songList.get(getSongIndex());
             editor.putInt("numOfSongs", songList.size());
@@ -462,6 +452,11 @@ public class MusicService extends Service implements MusicControl {
         Intent intent = new Intent(this, AppWidgetProviderController.class);
         intent.setAction(action);
         sendBroadcast(intent);
+    }
+
+    @Override
+    public void releaseMediaPlayer() {
+        mediaPlayer.reset();
     }
 
     public class MusicControlNotification extends BroadcastReceiver {

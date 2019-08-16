@@ -1,4 +1,4 @@
-package com.example.main.simplemp3_2.Fragment;
+package com.example.main.simplemp3_2.ListDrag;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -10,8 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.example.main.simplemp3_2.Adapter.DragListAdapter;
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Song.MusicController;
 import com.example.main.simplemp3_2.Song.Song;

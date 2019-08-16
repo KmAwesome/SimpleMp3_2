@@ -12,23 +12,20 @@ import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 public class InitSongList {
-    private final String TAG = "InitSongList";
     public final static String musicFilter = "MUSICFILTER";
+    public final static String sortString = "SORTSTRING";
+    private final String TAG = "InitSongList";
     private final static String time = "TIME";
     private final static String sort = "SORT";
-    private final static String sortString = "SORTSTRING";
     private String string;
-    private int filterTime, sortSelect;
+    private static int filterTime, sortSelect;
     private Context context;
     private SharedPreferences sharedPreferences;
     private ArrayList<Song> songlist;
 
-    public enum sortBy {
-        sortByDefault, sortByDate;
-    }
-
     public InitSongList(Context context) {
         this.context = context;
+        sharedPreferences = context.getSharedPreferences(musicFilter, Context.MODE_PRIVATE);
         songlist = new ArrayList<>();
         initSongList();
     }
@@ -84,10 +81,8 @@ public class InitSongList {
         }
 
         if (sortSelect == 0) {
-            string = "默認";
             sortByDefalut();
         }else if (sortSelect == 1) {
-            string = "日期";
             sortByDate();
         }
     }
@@ -101,12 +96,9 @@ public class InitSongList {
         return songlist;
     }
 
-    public void setSortBy(sortBy sortBy) {
-        Log.i(TAG, "Set sort by" + sortBy.ordinal());
-        this.sortSelect = sortBy.ordinal();
-    }
-
     public void sortByDefalut() {
+        sortSelect = 0;
+        string = "默認";
         Collections.sort(songlist, new Comparator<Song>() {
             @Override
             public int compare(Song a, Song b) {
@@ -116,6 +108,8 @@ public class InitSongList {
     }
 
     public void sortByDate() {
+        sortSelect = 1;
+        string = "日期";
         Collections.sort(songlist, new Comparator<Song>() {
             @Override
             public int compare(Song a, Song b) {
@@ -129,7 +123,6 @@ public class InitSongList {
     }
 
     public void saveData() {
-        sharedPreferences = context.getSharedPreferences(musicFilter, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(time, filterTime);
         editor.putInt(sort, sortSelect);
@@ -138,9 +131,12 @@ public class InitSongList {
     }
 
     public void readData() {
-        sharedPreferences = context.getSharedPreferences(musicFilter, Context.MODE_PRIVATE);
         filterTime = sharedPreferences.getInt(time, 60);
         sortSelect = sharedPreferences.getInt(sort, 0);
+    }
+
+    public String getSortName() {
+        return sharedPreferences.getString(sortString, "排列");
     }
 
     public String getFilterTime() {

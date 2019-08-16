@@ -5,10 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.main.simplemp3_2.MainActivity;
+import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Service.MusicService;
 import java.util.ArrayList;
 
@@ -16,13 +17,11 @@ public class MusicController implements MusicControl {
     private final String TAG = "MusicController";
     private MusicService musicService;
     private Context context;
-    private boolean isBind = false;
-    private Toast toast;
+    private static boolean isBind = false;
 
     public MusicController(Context context) {
         this.context = context;
         bindMusicService();
-        toast = new Toast(context);
     }
 
     public void bindMusicService() {
@@ -36,6 +35,7 @@ public class MusicController implements MusicControl {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             MusicService.MusicBinder musicBinder = (MusicService.MusicBinder) iBinder;
             musicService = musicBinder.getService();
+            musicService.updateActivityUi(MusicService.ACTION_START);
             isBind = true;
         }
 
@@ -48,6 +48,9 @@ public class MusicController implements MusicControl {
     @Override
     public void playSong() {
         musicService.playSong();
+        if (context instanceof MainActivity) {
+            ((MainActivity) context).controlLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -58,6 +61,9 @@ public class MusicController implements MusicControl {
     @Override
     public void continueSong() {
         musicService.continueSong();
+        if (context instanceof MainActivity) {
+            ((MainActivity) context).controlLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -128,6 +134,11 @@ public class MusicController implements MusicControl {
     @Override
     public void updateWidget(String action) {
         musicService.updateWidget(action);
+    }
+
+    @Override
+    public void releaseMediaPlayer() {
+        musicService.releaseMediaPlayer();
     }
 
     public void unbindMusicService() {

@@ -1,22 +1,16 @@
-package com.example.main.simplemp3_2.Adapter;
+package com.example.main.simplemp3_2.ViewPager;
 
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
-import android.view.ViewGroup;
 
-import com.example.main.simplemp3_2.Fragment.AlbumFragment;
-import com.example.main.simplemp3_2.Fragment.ArtistFragment;
-import com.example.main.simplemp3_2.Fragment.FolderFragment;
-import com.example.main.simplemp3_2.Fragment.PlayFragment;
-import com.example.main.simplemp3_2.Fragment.PlayListFragment;
-import com.example.main.simplemp3_2.Fragment.SongFragment;
-import com.example.main.simplemp3_2.Fragment.SongStyleFragment;
+import com.example.main.simplemp3_2.ListAlbum.AlbumFragment;
+import com.example.main.simplemp3_2.ListArtist.ArtistFragment;
+import com.example.main.simplemp3_2.ListFolder.FolderFragment;
+import com.example.main.simplemp3_2.ListPlaying.PlayFragment;
+import com.example.main.simplemp3_2.ListDrag.PlayListFragment;
+import com.example.main.simplemp3_2.ListRecycleView.ListRecycleFragment;
+import com.example.main.simplemp3_2.ListStyle.SongStyleFragment;
 
 import java.util.ArrayList;
 
@@ -28,6 +22,7 @@ public class PagerAdapter extends FragmentPagerAdapter {
     private FolderFragment folderFragment;
     private PlayListFragment playListFragment;
     private SongStyleFragment songStyleFragment;
+    public ListRecycleFragment listRecycleFragment;
 
     public PagerAdapter(FragmentManager fm, int numOfTab) {
         super(fm);
@@ -38,8 +33,10 @@ public class PagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                playFragment = new PlayFragment();
-                return playFragment;
+//                playFragment = new PlayFragment();
+//                return playFragment;
+                listRecycleFragment = new ListRecycleFragment();
+                return  listRecycleFragment;
             case 1:
                 artistFragment = new ArtistFragment();
                 return artistFragment;
@@ -85,9 +82,18 @@ public class PagerAdapter extends FragmentPagerAdapter {
         return numOfTab;
     }
 
+    public void updateLogoView(int position) {
+        switch (position) {
+            case 0:
+                if (listRecycleFragment != null)
+                    listRecycleFragment.updateSongAdapter();
+        }
+    }
+
     public void refreshAllFragment() {
         ArrayList<Fragment> fragments = new ArrayList<>();
         fragments.add(playFragment);
+        fragments.add(listRecycleFragment);
         fragments.add(artistFragment);
         fragments.add(albumFragment);
         fragments.add(folderFragment);
