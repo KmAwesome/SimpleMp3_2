@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.MediaStore;
-import android.util.Log;
+
+import com.example.main.simplemp3_2.Models.Song;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

@@ -110,7 +110,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/txv_song_num"
+            android:id="@+id/text_view_song_total"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"

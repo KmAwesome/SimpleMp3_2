@@ -3,14 +3,13 @@ package com.example.main.simplemp3_2.Song;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.main.simplemp3_2.Models.Song;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 public class SongListInFile {
     private final String TAG = "SongListInFile";

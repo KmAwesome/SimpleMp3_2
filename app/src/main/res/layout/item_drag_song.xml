@@ -40,7 +40,7 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/song_duration"
+        android:id="@+id/texv_view_song_duration"
         android:layout_width="50dp"
         android:layout_height="match_parent"
         android:gravity="center"
@@ -54,7 +54,7 @@
         android:src="@drawable/item_drag1" />
 
     <ImageButton
-        android:id="@+id/song_setting"
+        android:id="@+id/image_button_setting"
         android:layout_width="30dp"
         android:layout_height="match_parent"
         android:background="#00000000"

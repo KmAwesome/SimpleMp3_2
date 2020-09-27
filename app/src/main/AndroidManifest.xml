@@ -23,8 +23,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.MusicInfoActivity" />
-        <activity android:name=".Activity.PlayActivity" />
+        <activity android:name=".Activity.EditMusicInfoActivity" />
+        <activity android:name=".Activity.MusicPlayerActivity" />
 
         <service android:name=".Service.MusicService" />
 

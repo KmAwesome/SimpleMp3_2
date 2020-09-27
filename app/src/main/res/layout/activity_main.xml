@@ -1,94 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".Activity.MainActivity">
-
-    <RelativeLayout
-        android:id="@+id/relativLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </RelativeLayout>
+    android:fitsSystemWindows="true">
 
     <LinearLayout
-        android:id="@+id/music_control_layout"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_gravity="bottom"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <ProgressBar
-            android:id="@+id/mp3_seekbar"
-            style="?android:attr/progressBarStyleHorizontal"
+        <FrameLayout
+            android:id="@+id/frameLayout"
             android:layout_width="match_parent"
-            android:layout_height="2dp" />
+            android:layout_height="match_parent"
+            android:layout_weight="1">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:orientation="horizontal">
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:title="SimpleMp3">
+            </android.support.v7.widget.Toolbar>
 
-            <ImageView
-                android:id="@+id/view_icon"
-                android:layout_width="55dp"
+            <RelativeLayout
+                android:id="@+id/relativLayout"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="10dp"
-                android:src="@drawable/main_view_mp3_icon" />
+                android:layout_marginTop="60dp">
+            </RelativeLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+        </FrameLayout>
 
-                <TextView
-                    android:id="@+id/txv_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:ellipsize="marquee"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:freezesText="true"
-                    android:gravity="left|bottom"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:singleLine="true"
-                    android:text="SongTitle"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/txv_artist"
-                    android:layout_width="match_parent"
-                    android:layout_height="25dp"
-                    android:gravity="left|top"
-                    android:text="SongArtist"
-                    android:singleLine="true"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/btnRepeat"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:background="#00000000"
-                android:src="@drawable/main_btn_repeat_all" />
-
-            <ImageButton
-                android:id="@+id/imgbtn_play"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:background="#00000000"
-                android:src="@drawable/main_btn_play" />
-
-            <ImageButton
-                android:id="@+id/imgbtn_next"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:background="#00000000"
-                android:src="@drawable/main_btn_play_next" />
-        </LinearLayout>
+        <include layout="@layout/activity_music_control"/>
 
     </LinearLayout>
 
-</FrameLayout>
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        android:paddingTop="30dp"
+        app:menu="@menu/drawer_menu"
+        app:itemTextColor="@color/colorTextTitle"
+        app:itemBackground="@color/colorBackground"
+        app:itemIconTint="@color/colorItem"/>
+
+</android.support.v4.widget.DrawerLayout>

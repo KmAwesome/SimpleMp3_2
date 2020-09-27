@@ -1,20 +1,17 @@
 package com.example.main.simplemp3_2.Activity;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -34,75 +31,59 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import com.example.main.simplemp3_2.R;
-import com.example.main.simplemp3_2.Service.MusicService;
-import com.example.main.simplemp3_2.ViewPager.PagerAdapter;
-import com.example.main.simplemp3_2.Song.InitSongList;
-import com.example.main.simplemp3_2.Song.MusicController;
+import com.example.main.simplemp3_2.PagerAdapter.MyFragmentPagerAdapter;
+import com.example.main.simplemp3_2.Utils.MusicConstants;
+import com.example.main.simplemp3_2.Utils.MusicController;
 import com.example.main.simplemp3_2.Dialog.CountDownDialog;
 import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static com.example.main.simplemp3_2.Service.MusicService.ACTION_START;
-import static com.example.main.simplemp3_2.Song.InitSongList.musicFilter;
-import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PAUSE;
-import static com.example.main.simplemp3_2.Service.MusicService.ACTION_PLAY;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MusicConstants {
     private final String TAG  = "MainActivity";
-    public MusicController musicController;
-    private InitSongList initSongList;
-    private Toolbar toolbar;
     private final static int PERMISSION_ALL = 1;
+    private final String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
     private Handler musicHandler = new Handler();
-    private PagerAdapter pagerAdapter;
+    private MusicController musicController;
+    private IntentFilter intentFilter;
+    private updateMainActivityUiReceiver updateMainActivityUiReceiver;
+    private MyFragmentPagerAdapter MyFragmentPagerAdapter;
+    private Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private RelativeLayout relativeLayout;
-    public LinearLayout controlLayout ;
+    private LinearLayout musicControlLayout ;
     private TabLayout tabLayout;
     private ViewPager viewPager;
-    private View view;
     private ProgressBar mp3ProgressBar;
-    public TextView txvSongTitle,txvSongArtist;
-    public ImageButton btnPlaySong, btnPlayNext,btnRepeat;
-    private String[] PERMISSIONS = {WRITE_EXTERNAL_STORAGE};
+    private TextView txvSongTitle,txvSongArtist;
+    private ImageButton btnPlaySong, btnPlayNext,btnRepeat;
+    private View view;
     private CountDownDialog countDownDialog;
-    private static boolean isBackground, isRunning;
 
-    private void initUpdateUiReceiver() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ACTION_PLAY);
-        intentFilter.addAction(ACTION_PAUSE);
-        intentFilter.addAction(ACTION_START);
-        registerReceiver(UIbroadcastReceiver, intentFilter);
-    }
-
-    BroadcastReceiver UIbroadcastReceiver = new BroadcastReceiver() {
+    public class updateMainActivityUiReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            if (!isRunning) {
-                mp3Start.run();
+            switch (intent.getAction()) {
+                case ACTION_PLAY:
+                    txvSongTitle.setText(musicController.getCurrentSong().getTitle());
+                    txvSongArtist.setText(musicController.getCurrentSong().getArtist());
+                    btnPlaySong.setImageResource(R.drawable.main_btn_pause);
+                    mp3StartRunnable.run();
+                    break;
+                case ACTION_PAUSE:
+                    btnPlaySong.setImageResource(R.drawable.main_btn_play);
+                    musicHandler.removeCallbacks(mp3StartRunnable);
+                    break;
+                case ACTION_CONTINUE:
+                    btnPlaySong.setImageResource(R.drawable.main_btn_pause);
+                    mp3StartRunnable.run();
+                    break;
             }
-
-            if (intent.getAction().equals(ACTION_PAUSE)) {
-                btnPlaySong.setImageResource(R.drawable.main_btn_play);
-            }else if (intent.getAction().equals(ACTION_PLAY)) {
-                btnPlaySong.setImageResource(R.drawable.main_btn_pause);
-            }
-
-            mp3ProgressBar.setMax(musicController.getSongDuration());
-            mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
-            txvSongTitle.setText(intent.getStringExtra("songTitle"));
-            txvSongArtist.setText(intent.getStringExtra("songArtist"));
-
-            pagerAdapter.updateLogoView(tabLayout.getSelectedTabPosition());
-
         }
-    };
+    }
 
-    private Runnable mp3Start = new Runnable() {
+    private Runnable mp3StartRunnable = new Runnable() {
         @Override
         public void run() {
             if (musicController.isPlaying()) {
@@ -110,47 +91,51 @@ public class MainActivity extends AppCompatActivity {
                 mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
                 btnPlaySong.setImageResource(R.drawable.main_btn_pause);
             }
-            isRunning = true;
             musicController.updateRepeatImgButtonView(btnRepeat);
-            musicHandler.postDelayed(this, 50);
+            musicHandler.postDelayed(this, 1000);
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.drawer_layout);
+        setContentView(R.layout.activity_main);
         requestPermission(PERMISSIONS);
+        if (musicController.isBind) {
+            initUserLayout();
+        }
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_PLAY);
+        intentFilter.addAction(ACTION_PAUSE);
+        updateMainActivityUiReceiver = new updateMainActivityUiReceiver();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        isBackground = false;
-        isRunning = false;
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        isBackground = true;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try {
-            if (UIbroadcastReceiver != null){
-                unregisterReceiver(UIbroadcastReceiver);
+        if (musicController.isBind) {
+            if (!musicController.isPlaying()) {
+                musicController.updateRepeatImgButtonView(btnRepeat);
+                mp3ProgressBar.setMax(musicController.getSongDuration());
+                mp3ProgressBar.setProgress(musicController.getSongPlayingPosition());
+                btnPlaySong.setImageResource(R.drawable.main_btn_play);
+            }else {
+                mp3StartRunnable.run();
             }
-
-            if (musicController != null) {
-                musicHandler.removeCallbacks(mp3Start);
-                musicController.unbindMusicService();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(updateMainActivityUiReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(updateMainActivityUiReceiver);
+        musicHandler.removeCallbacks(mp3StartRunnable);
     }
 
     @Override
@@ -164,14 +149,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "onDestroy: ");
+    }
+
     private void requestPermission(String... permissions) {
         for (String permission : permissions) {
             if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, permissions, PERMISSION_ALL);
             } else {
                 Log.i(TAG, "PERMISSION_GRANTED");
-                musicController = new MusicController(this);
-                initUserLayout();
+                musicController = MusicController.getInstance(this);
             }
         }
     }
@@ -180,29 +170,24 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "PERMISSION_GRANTED");
-            musicController = new MusicController(this);
-            initUserLayout();
+            Log.i(TAG, "REQUEST_PERMISSION");
+            musicController = MusicController.getInstance(this);
         }else {
             finish();
         }
     }
 
     public void initUserLayout() {
-        initSongList = new InitSongList(this);
         initToolBar();
-        initDrawer();
-        initTabLayout();
-        initView();
-        initUpdateUiReceiver();
+        initDrawerLayout();
+        initTabLayoutAndPagerAdapter();
+        initMusicControllerToolBarView();
     }
 
     private void initToolBar() {
-
         toolbar = findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.toolbar_main_menu);
-
-        toolbar.getMenu().findItem(R.id.menu_sort).setTitle(initSongList.getSortName());
+        toolbar.getMenu().findItem(R.id.menu_sort).setTitle("123");
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -217,13 +202,13 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 if (i == 0) {
                                     item.setTitle(srot[i]);
-                                    initSongList.sortByDefalut();
+                                    //initSongList.sortByDefalut();
                                 }else if (i == 1) {
                                     item.setTitle(srot[i]);
-                                    initSongList.sortByDate();
+                                    //initSongList.sortByDate();
                                 }
-                                initSongList.saveData();
-                                initSongList.initSongList();
+                                //initSongList.saveData();
+                                //initSongList.initSongList();
                                 refreshAllFragment();
                             }
                         }).show();
@@ -254,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initDrawer() {
+    private void initDrawerLayout() {
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
@@ -284,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void initTabLayout() {
+    public void initTabLayoutAndPagerAdapter() {
         relativeLayout = findViewById(R.id.relativLayout);
         view = LayoutInflater.from(this).inflate(R.layout.fragment_container,null);
         relativeLayout.addView(view);
@@ -303,30 +288,36 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addTab(tabLayout.newTab());
         tabLayout.addTab(tabLayout.newTab());
 
-        pagerAdapter = new PagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
-        viewPager.setAdapter(pagerAdapter);
+        MyFragmentPagerAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(MyFragmentPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    public void initView() {
-        controlLayout = findViewById(R.id.music_control_layout);
+    public void initMusicControllerToolBarView() {
+        musicControlLayout = findViewById(R.id.music_control_layout);
         btnPlaySong = findViewById(R.id.imgbtn_play);
         btnPlayNext = findViewById(R.id.imgbtn_next);
         btnRepeat = findViewById(R.id.btnRepeat);
         txvSongTitle = findViewById(R.id.txv_title);
         txvSongArtist = findViewById(R.id.txv_artist);
-        controlLayout .setOnClickListener(controlListener);
-        btnPlaySong.setOnClickListener(controlListener);
-        btnPlayNext.setOnClickListener(controlListener);
-        btnRepeat.setOnClickListener(controlListener);
+
+        musicControlLayout.setOnClickListener(musicControlListener);
+        btnPlaySong.setOnClickListener(musicControlListener);
+        btnPlayNext.setOnClickListener(musicControlListener);
+        btnRepeat.setOnClickListener(musicControlListener);
 
         mp3ProgressBar = findViewById(R.id.mp3_seekbar);
 
         txvSongTitle.setSelected(true);
 
+        if (musicController.getSongList().size() > 0) {
+            txvSongTitle.setText(musicController.getCurrentSong().getTitle());
+            txvSongArtist.setText(musicController.getCurrentSong().getArtist());
+        }
+
     }
 
-    View.OnClickListener controlListener = new View.OnClickListener() {
+    View.OnClickListener musicControlListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             switch (view.getId()){
@@ -347,23 +338,15 @@ public class MainActivity extends AppCompatActivity {
                     musicController.setRepeatMode(view);
                     break;
                 case R.id.music_control_layout:
-                    Intent intent = new Intent(MainActivity.this, PlayActivity.class);
+                    Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
                     startActivity(intent);
                     break;
             }
         }
     };
 
-    public MusicController getMusicController() {
-        return musicController;
-    }
-
-    public InitSongList getInitSongList() {
-        return initSongList;
-    }
-
     public void refreshAllFragment() {
-        pagerAdapter.refreshAllFragment();;
+        MyFragmentPagerAdapter.refreshAllFragment();;
     }
 }
 
