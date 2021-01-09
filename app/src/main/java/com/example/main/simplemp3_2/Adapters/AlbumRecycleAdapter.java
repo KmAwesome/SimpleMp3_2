@@ -26,10 +26,9 @@ import java.util.ArrayList;
 public class AlbumRecycleAdapter extends RecyclerView.Adapter<AlbumRecycleAdapter.ViewHolder> {
     private static final String TAG = "AlbumRecycleAdapter";
     private Context context;
-    private ArrayList<String> songStringList;
+    private ArrayList<String> albumTitleStringList;
     private ArrayList<Song> songArrayList;
     private OnItemClickListener listener;
-    private MusicController musicController;
 
     public interface OnItemClickListener {
         void onItemClick(int position);
@@ -39,10 +38,29 @@ public class AlbumRecycleAdapter extends RecyclerView.Adapter<AlbumRecycleAdapte
         this.listener = listener;
     }
 
-    public AlbumRecycleAdapter(Context context, ArrayList songStringList) {
+    public AlbumRecycleAdapter(Context context, ArrayList albumTitleStringList) {
         this.context = context;
-        this.songStringList = songStringList;
-        musicController = MusicController.getInstance(context);
+        this.albumTitleStringList = albumTitleStringList;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_album, viewGroup, false);
+        ViewHolder viewHolder = new ViewHolder(view);
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+        String albumTitle = albumTitleStringList.get(position) ;
+        songArrayList = MusicUtils.getSongListByTitle(context, albumTitle);
+        holder.textViewAlbumTitle.setText(albumTitle);
+        holder.textViewSongTotal.setText("曲目 " + songArrayList.size());
+    }
+
+    @Override
+    public int getItemCount() {
+        return albumTitleStringList.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -80,11 +98,11 @@ public class AlbumRecycleAdapter extends RecyclerView.Adapter<AlbumRecycleAdapte
                                     break;
                                 case R.id.addToList:
                                     SelectPlayListDialog selectPlayListDialog = new SelectPlayListDialog();
-                                    selectPlayListDialog.addListToFile(songStringList);
+                                    selectPlayListDialog.addListToFile(albumTitleStringList);
                                     selectPlayListDialog.show(((MainActivity)context).getSupportFragmentManager(),null);
                                     break;
                                 case R.id.rename:
-                                    final String title = songStringList.get(getAdapterPosition());
+                                    final String title = albumTitleStringList.get(getAdapterPosition());
                                     final EditText editText = new EditText(context);
                                     editText.setText(title);
                                     final AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
@@ -93,11 +111,9 @@ public class AlbumRecycleAdapter extends RecyclerView.Adapter<AlbumRecycleAdapte
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int pos) {
                                             String editTextTitle = editText.getText().toString();
-                                            songArrayList = MusicUtils.getSongListByAlbumTitle(context, title);
+                                            songArrayList = MusicUtils.getSongListByTitle(context, title);
                                             MusicUtils.renameAllSongsInFolder(context, MusicUtils.TYPE_ALBUM, songArrayList, editTextTitle);
-                                            songStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ALBUM);
-                                            Log.i(TAG, "onClick: " + songStringList);
-                                            notifyDataSetChanged();
+                                            refreshAdapterView();
                                         }
                                     });
                                     alertDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -117,28 +133,8 @@ public class AlbumRecycleAdapter extends RecyclerView.Adapter<AlbumRecycleAdapte
         }
     }
 
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_album, viewGroup, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        String albumTitle = songStringList.get(position) ;
-        songArrayList = MusicUtils.getSongListByAlbumTitle(context, albumTitle);
-        holder.textViewAlbumTitle.setText(albumTitle);
-        holder.textViewSongTotal.setText("曲目 " + songArrayList.size());
-    }
-
-    @Override
-    public int getItemCount() {
-        return songStringList.size();
-    }
-
     public void refreshAdapterView() {
-        songStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ALBUM);
+        albumTitleStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ALBUM);
         notifyDataSetChanged();
     }
 

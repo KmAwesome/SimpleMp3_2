@@ -7,7 +7,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +16,7 @@ import com.example.main.simplemp3_2.R;
 
 import static com.example.main.simplemp3_2.Utils.MusicConstants.ARGUMENTS_TOOLBAR_TITLE;
 
-public class SongFragmentWithBar extends Fragment implements SongAdapterWithBar.OnItemClickListener {
+public class SongListFragmentWithBar extends Fragment implements SongAdapterWithBar.OnItemClickListener {
     private final String TAG = "SongFragmentWithBar";
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
@@ -34,7 +33,7 @@ public class SongFragmentWithBar extends Fragment implements SongAdapterWithBar.
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.recycleview_container_with_toolbar, container, false);
+        View view = inflater.inflate(R.layout.song_list_container_with_toolbar, container, false);
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setTitle(toolbarTitle);
         toolbar.setNavigationIcon(R.drawable.play_btn_back);
@@ -50,16 +49,15 @@ public class SongFragmentWithBar extends Fragment implements SongAdapterWithBar.
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(mDivider);
-        songAdapterWithBar = new SongAdapterWithBar(getContext());
-        songAdapterWithBar.setOnItemClickListener(this);
-        recyclerView.setAdapter(songAdapterWithBar);
         return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        songAdapterWithBar.refreshAdapterView();
+        songAdapterWithBar = new SongAdapterWithBar(getContext());
+        songAdapterWithBar.setOnItemClickListener(this);
+        recyclerView.setAdapter(songAdapterWithBar);
     }
 
     @Override

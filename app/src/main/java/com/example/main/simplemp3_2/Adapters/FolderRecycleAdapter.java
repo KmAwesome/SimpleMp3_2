@@ -96,7 +96,6 @@ public class FolderRecycleAdapter extends RecyclerView.Adapter<FolderRecycleAdap
     public void onBindViewHolder(final ViewHolder holder, int position) {
         String folderName = folderStringList.get(position) ;
         holder.textViewFolderName.setText(folderName);
-        Log.i(TAG, "onBindViewHolder: " + folderName);
     }
 
     @Override

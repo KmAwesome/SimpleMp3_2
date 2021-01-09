@@ -8,7 +8,7 @@ import com.example.main.simplemp3_2.Fragments.AlbumRecycleFragment;
 import com.example.main.simplemp3_2.Fragments.ArtistRecycleFragment;
 import com.example.main.simplemp3_2.Fragments.FolderRecycleFragment;
 import com.example.main.simplemp3_2.Fragments.PlayListRecycleFragment;
-import com.example.main.simplemp3_2.Fragments.SongRecycleFragment;
+import com.example.main.simplemp3_2.Fragments.SongListFrangment;
 import com.example.main.simplemp3_2.Fragments.StyleRecycleFragment;
 import java.util.ArrayList;
 
@@ -21,7 +21,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     private FolderRecycleFragment folderRecycleFragment;
     private PlayListRecycleFragment playListRecycleFragment;
     private StyleRecycleFragment styleRecycleViewFragment;
-    private SongRecycleFragment songRecycleFragment;
+    private SongListFrangment songListFrangment;
 
     public MyFragmentPagerAdapter(FragmentManager fm, int numOfTab) {
         super(fm);
@@ -33,9 +33,9 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                songRecycleFragment = new SongRecycleFragment();
-                addFragmentToViewPager(songRecycleFragment);
-                return songRecycleFragment;
+                songListFrangment = new SongListFrangment();
+                addFragmentToViewPager(songListFrangment);
+                return songListFrangment;
             case 1:
                 artistRecycleFragment = new ArtistRecycleFragment();
                 addFragmentToViewPager(artistRecycleFragment);
@@ -54,7 +54,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
                 return playListRecycleFragment;
             case 5:
                 styleRecycleViewFragment = new StyleRecycleFragment();
-                addFragmentToViewPager(songRecycleFragment);
+                addFragmentToViewPager(songListFrangment);
                 return styleRecycleViewFragment;
             default:
                 return null;
@@ -89,12 +89,6 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     public void addFragmentToViewPager (Fragment fragment) {
         if (!fragments.contains(fragment)) {
             fragments.add(fragment);
-        }
-    }
-
-    public void removeFragmentFromViewPager (Fragment fragment) {
-        if (fragments.contains(fragment)) {
-            fragments.remove(fragment);
         }
     }
 

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,11 +19,10 @@ import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.Models.Song;
 import com.example.main.simplemp3_2.Utils.MusicController;
 import com.example.main.simplemp3_2.Utils.FileUtils;
-
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class SongRecycleAdapter extends RecyclerView.Adapter<SongRecycleAdapter.ViewHolder> {
+public class SongAdapter extends RecyclerView.Adapter<SongAdapter.ViewHolder> {
     private final String TAG = "SongRecycleAdapter";
     private ArrayList<Song> songArrayList;
     private MusicController musicController;
@@ -37,11 +37,34 @@ public class SongRecycleAdapter extends RecyclerView.Adapter<SongRecycleAdapter.
         this.onItemClickListener = onItemClickListener;
     }
 
-    public SongRecycleAdapter(Context context, ArrayList<Song> songArrayList) {
+    public SongAdapter(Context context, ArrayList<Song> songArrayList) {
         this.context = context;
-        musicController = MusicController.getInstance(context);
         this.songArrayList = songArrayList;
+        musicController = MusicController.getInstance(context);
     }
+
+    @Override
+    public SongAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_song, viewGroup, false);
+        ViewHolder myViewHolder = new ViewHolder(view);
+        return myViewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(final SongAdapter.ViewHolder viewHolder, int i) {
+        viewHolder.textViewSongTitle.setText(songArrayList.get(i).getTitle());
+        viewHolder.textViewArtistName.setText(songArrayList.get(i).getArtist());
+        String sDuration = String.format("%2d:%02d", TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()),
+                TimeUnit.MILLISECONDS.toSeconds(songArrayList.get(i).getDuration()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()))
+        );
+        viewHolder.textViewDuration.setText(sDuration);
+    }
+
+    @Override
+    public int getItemCount() {
+        return songArrayList.size();
+    }
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textViewSongTitle, textViewArtistName, textViewDuration;
@@ -94,7 +117,8 @@ public class SongRecycleAdapter extends RecyclerView.Adapter<SongRecycleAdapter.
                                     alertDialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
-                                            FileUtils.deleteSongFile(context, songArrayList.get(getAdapterPosition()).getPath());
+                                            FileUtils.deleteSongFile(context, songArrayList, getAdapterPosition(), musicController);
+                                            notifyDataSetChanged();
                                         }
                                     });
                                     alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -114,31 +138,4 @@ public class SongRecycleAdapter extends RecyclerView.Adapter<SongRecycleAdapter.
             });
         }
     }
-
-    @Override
-    public SongRecycleAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_song, viewGroup, false);
-        ViewHolder myViewHolder = new ViewHolder(view);
-        return myViewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(final SongRecycleAdapter.ViewHolder viewHolder, int i) {
-        viewHolder.textViewSongTitle.setText(songArrayList.get(i).getTitle());
-        viewHolder.textViewArtistName.setText(songArrayList.get(i).getArtist());
-        String sDuration = String.format("%2d:%02d", TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()),
-                TimeUnit.MILLISECONDS.toSeconds(songArrayList.get(i).getDuration()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()))
-        );
-        viewHolder.textViewDuration.setText(sDuration);
-    }
-
-    @Override
-    public int getItemCount() {
-        return songArrayList.size();
-    }
-
-    public void refreshAdapterView() {
-        notifyDataSetChanged();
-    }
-
 }

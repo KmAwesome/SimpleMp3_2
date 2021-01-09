@@ -1,6 +1,9 @@
 package com.example.main.simplemp3_2.Activity;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityManagerCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
@@ -31,12 +35,23 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.example.main.simplemp3_2.Fragments.MusicPlayerFragment;
+import com.example.main.simplemp3_2.Fragments.SongListFragmentWithBar;
+import com.example.main.simplemp3_2.Models.Song;
 import com.example.main.simplemp3_2.R;
 import com.example.main.simplemp3_2.PagerAdapter.MyFragmentPagerAdapter;
 import com.example.main.simplemp3_2.Utils.MusicConstants;
 import com.example.main.simplemp3_2.Utils.MusicController;
 import com.example.main.simplemp3_2.Dialog.CountDownDialog;
 import com.example.main.simplemp3_2.Dialog.SongFilterDialog;
+import com.example.main.simplemp3_2.Utils.MusicUtils;
+import com.google.android.gms.dynamic.IFragmentWrapper;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.security.auth.login.LoginException;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
@@ -60,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
     private ImageButton btnPlaySong, btnPlayNext,btnRepeat;
     private View view;
     private CountDownDialog countDownDialog;
+    private boolean isHomeActivity = false;
 
     public class updateMainActivityUiReceiver extends BroadcastReceiver {
         @Override
@@ -79,6 +95,12 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
                     btnPlaySong.setImageResource(R.drawable.main_btn_pause);
                     mp3StartRunnable.run();
                     break;
+                case ACTION_STOP:
+                    mp3ProgressBar.setProgress(0);
+                    txvSongArtist.setText("");
+                    txvSongTitle.setText("");
+                    btnPlaySong.setImageResource(R.drawable.main_btn_play);
+                    musicHandler.removeCallbacks(mp3StartRunnable);
             }
         }
     }
@@ -107,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
         intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_PLAY);
         intentFilter.addAction(ACTION_PAUSE);
+        intentFilter.addAction(ACTION_STOP);
         updateMainActivityUiReceiver = new updateMainActivityUiReceiver();
     }
 
@@ -123,12 +146,22 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
                 mp3StartRunnable.run();
             }
         }
+        isHomeActivity = true;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         registerReceiver(updateMainActivityUiReceiver, intentFilter);
+        sendBroadcast(new Intent().setAction(NOTIFICATION_CLOSE_NOTIFICATION_ONLY));
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (musicController.isPlaying()) {
+            sendBroadcast(new Intent().setAction(NOTIFICATION_CREATE_NOTIFICATION));
+        }
     }
 
     @Override
@@ -146,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
             moveTaskToBack(true);
         }else{
             getSupportFragmentManager().popBackStack();
+            refreshAllFragment();
         }
     }
 
@@ -260,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
                 if (id == R.id.set) {
                     Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                     startActivity(intent);
+                    isHomeActivity = false;
                 }else if (id == R.id.timer) {
                     countDownDialog.show(getSupportFragmentManager(), "countDownDialog");
                 }
@@ -323,6 +358,11 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
             switch (view.getId()){
                 case R.id.imgbtn_play:
                     if (musicController.getSongPlayingPosition() == 0) {
+                        if (musicController.getSongIndex() == -1 && musicController.getSongList().size() > 0) {
+                            ArrayList<Song> songArrayList = MusicUtils.getSongList(MainActivity.this);
+                            musicController.setSongList(songArrayList);
+                            musicController.setSongIndex(0);
+                        }
                         musicController.playSong();
                     }else if (musicController.isPlaying()) {
                         musicController.pauseSong();
@@ -338,14 +378,18 @@ public class MainActivity extends AppCompatActivity implements MusicConstants {
                     musicController.setRepeatMode(view);
                     break;
                 case R.id.music_control_layout:
-                    Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-                    startActivity(intent);
+//                    Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+////                    startActivity(intent);
+////                    isHomeActivity = false;
+                    MusicPlayerFragment musicPlayerFragment = new MusicPlayerFragment();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.drawer_layout, musicPlayerFragment).addToBackStack(null).commit();
                     break;
             }
         }
     };
 
     public void refreshAllFragment() {
+        Log.i(TAG, "refreshAllFragment: ");
         MyFragmentPagerAdapter.refreshAllFragment();;
     }
 }

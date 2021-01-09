@@ -107,7 +107,6 @@ public class ArtistRecycleAdapter extends RecyclerView.Adapter<ArtistRecycleAdap
                                             String editTextTitle = editText.getText().toString();
                                             songArrayList = MusicUtils.getSongListByTitle(context, title);
                                             MusicUtils.renameAllSongsInFolder(context, MusicUtils.TYPE_ARTIST, songArrayList, editTextTitle);
-                                            refreshAdapterView();
                                         }
                                     });
                                     alertDialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -125,10 +124,5 @@ public class ArtistRecycleAdapter extends RecyclerView.Adapter<ArtistRecycleAdap
                 }
             });
         }
-    }
-
-    public void refreshAdapterView() {
-        artistStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ARTIST);
-        notifyDataSetChanged();
     }
 }

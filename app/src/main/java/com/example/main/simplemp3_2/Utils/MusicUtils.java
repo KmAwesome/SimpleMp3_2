@@ -77,13 +77,13 @@ public class MusicUtils {
             }
             contentResolver.update(uri, values, null,null);
             MusicUtils.updateSongList(context);
-            ((MainActivity)context).refreshAllFragment();
         }
     }
 
     public static ArrayList<String> getStringListByType(Context context, @Type String type) {
         if (songList == null) {
-            songList = getSongList(context);
+            //songList = getSongList(context);
+            songList = new ArrayList<>();
         }
         HashSet<String> stringHashSet = new HashSet<>();
         ArrayList<String> stringArrayList = new ArrayList<>();
@@ -107,7 +107,7 @@ public class MusicUtils {
             }
         }
         stringArrayList.addAll(stringHashSet);
-        Log.i(TAG, "getStringListByType: Type : " + type + " ,Size :" + stringArrayList.size());
+        Log.i(TAG, "getStringListByType: Type : " + type + " StringListSize : " + stringArrayList.size());
         return stringArrayList;
     }
 
@@ -166,20 +166,6 @@ public class MusicUtils {
         return songArrayList;
     }
 
-    public static ArrayList<Song> getSongListByAlbumTitle(Context context, String title) {
-        if (songList == null) {
-            songList = getSongList(context);
-        }
-        ArrayList<Song> songArrayList = new ArrayList<>();
-        for (Song song : songList) {
-            if (song.getAlbum().equals(title)) {
-                songArrayList.add(song);
-            }
-        }
-        Log.i(TAG, "getSongListByAlbumTitle Size : " + songArrayList.size());
-        return songArrayList;
-    }
-
     public static ArrayList<Song> getSongListContainTypeTitles(Context context, ArrayList<String> songTitles) {
         if (songList == null) {
             songList = getSongList(context);
@@ -198,12 +184,8 @@ public class MusicUtils {
         return songArrayList;
     }
 
-    public static void setSongList(ArrayList<Song> songArrayList) {
-        songList = songArrayList;
-    }
-
     public static ArrayList<Song> getSongList(Context context) {
-        musicCursor(context);
+        updateSongList(context);
         return songList;
     }
 
@@ -250,7 +232,6 @@ public class MusicUtils {
                     if (thisStyle == null || thisStyle.equals("")) { thisStyle = "<unknow>"; }
                     Song song = new Song(thisID, thisTitle, thisArtist, thisDuraion, thispath, thisAlbum, thisStyle, thisDate);
                     int timeInSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(thisDuraion);
-                    Log.i(TAG, "musicCursor: " + timeInSeconds);
                     if (timeInSeconds >= songDurationInSeconds) {
                         songList.add(song);
                     }

@@ -34,7 +34,7 @@
 
         </FrameLayout>
 
-        <include layout="@layout/activity_music_control"/>
+        <include layout="@layout/activity_music_control_bar"/>
 
     </LinearLayout>
 

@@ -30,29 +30,28 @@ public class FolderRecycleFragment extends Fragment implements FolderRecycleAdap
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        folderStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_PATH);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         DividerItemDecoration mDivider = new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL);
-        View view = inflater.inflate(R.layout.recycleview_container, null,false);
+        View view = inflater.inflate(R.layout.song_list_container, null,false);
         folderRecycleView = view.findViewById(R.id.recycleview_main);
         folderRecycleView.addItemDecoration(mDivider);
         folderRecycleView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(context);
         folderRecycleView.setLayoutManager(layoutManager);
-        folderRecycleAdapter = new FolderRecycleAdapter(context, folderStringList);
-        folderRecycleView.setAdapter(folderRecycleAdapter);
-        folderRecycleAdapter.setOnItemClickListener(this);
         return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        folderRecycleAdapter.refreshAdapterView();
+        folderStringList  = MusicUtils.getStringListByType(context, MusicUtils.TYPE_PATH);
+        folderRecycleAdapter = new FolderRecycleAdapter(context, folderStringList);
+        folderRecycleView.setAdapter(folderRecycleAdapter);
+        folderRecycleAdapter.setOnItemClickListener(this);
     }
 
     @Override
@@ -62,8 +61,8 @@ public class FolderRecycleFragment extends Fragment implements FolderRecycleAdap
         bundle.putString(ARGUMENTS_TOOLBAR_TITLE, folderTitle);
         ArrayList<Song> songArrayList = MusicUtils.getSongListByTitleContainTypes(context, folderTitle, MusicUtils.TYPE_PATH);
         MusicUtils.setDisplaySongList(songArrayList);
-        SongFragmentWithBar songFragmentWithBar = new SongFragmentWithBar();
-        songFragmentWithBar.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songFragmentWithBar).addToBackStack(null).commit();
+        SongListFragmentWithBar songListFragmentWithBar = new SongListFragmentWithBar();
+        songListFragmentWithBar.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songListFragmentWithBar).addToBackStack(null).commit();
     }
 }

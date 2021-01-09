@@ -27,22 +27,27 @@ public class StyleRecycleFragment extends Fragment implements StyleRecycleAdapte
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        styleStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_STYLE);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.recycleview_container, container, false);
+        View view = inflater.inflate(R.layout.song_list_container, container, false);
         DividerItemDecoration mDivider = new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL);
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView = view.findViewById(R.id.recycleview_main);
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(mDivider);
         recyclerView.setLayoutManager(layoutManager);
+        return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        styleStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_STYLE);
         StyleRecycleAdapter styleRecycleAdapter = new StyleRecycleAdapter(context, styleStringList);
         styleRecycleAdapter.setOnItemClickListener(this);
         recyclerView.setAdapter(styleRecycleAdapter);
-        return view;
     }
 
     @Override
@@ -53,8 +58,8 @@ public class StyleRecycleFragment extends Fragment implements StyleRecycleAdapte
         bundle.putString(ARGUMENTS_TOOLBAR_TITLE, styleTitle);
         ArrayList<Song> songArrayList = MusicUtils.getSongListByTitle(context, styleTitle);
         MusicUtils.setDisplaySongList(songArrayList);
-        SongFragmentWithBar songFragmentWithBar = new SongFragmentWithBar();
-        songFragmentWithBar.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songFragmentWithBar).addToBackStack(null).commit();
+        SongListFragmentWithBar songListFragmentWithBar = new SongListFragmentWithBar();
+        songListFragmentWithBar.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songListFragmentWithBar).addToBackStack(null).commit();
     }
 }

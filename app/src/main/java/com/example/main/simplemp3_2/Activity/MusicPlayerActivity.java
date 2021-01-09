@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -197,8 +198,22 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicConst
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onResume() {
+        super.onResume();
+        sendBroadcast(new Intent().setAction(NOTIFICATION_CLOSE_NOTIFICATION_ONLY));
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (musicController.isPlaying()) {
+            sendBroadcast(new Intent().setAction(NOTIFICATION_CREATE_NOTIFICATION));
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         unregisterReceiver(updateMusicPlayerUIreceiver);
     }
 
@@ -212,7 +227,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicConst
             e.printStackTrace();
         }
     }
-    
+
     View.OnClickListener controlBarListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {

@@ -7,7 +7,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,35 +36,34 @@ public class AlbumRecycleFragment extends Fragment implements AlbumRecycleAdapte
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.recycleview_container, container,false);
+        View view = inflater.inflate(R.layout.song_list_container, container,false);
         DividerItemDecoration mDivider = new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL);
         layoutManager = new LinearLayoutManager(context);
-        albumAdapter = new AlbumRecycleAdapter(context, albumStringList);
-        albumAdapter.setOnItemClickListener(this);
         albumRecycleView = view.findViewById(R.id.recycleview_main);
         albumRecycleView.setHasFixedSize(true);
         albumRecycleView.setLayoutManager(layoutManager);
         albumRecycleView.addItemDecoration(mDivider);
-        albumRecycleView.setAdapter(albumAdapter);
         return view;
     }
 
     @Override
     public void onStart() {
-        Log.i(TAG, "onStart: @@");
         super.onStart();
+        albumStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ALBUM);
+        albumAdapter = new AlbumRecycleAdapter(context, albumStringList);
+        albumAdapter.setOnItemClickListener(this);
+        albumRecycleView.setAdapter(albumAdapter);
     }
 
     @Override
     public void onItemClick(int position) {
-        albumStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ALBUM);
         String albumTitle = albumStringList.get(position);
         Bundle bundle = new Bundle();
         bundle.putString(ARGUMENTS_TOOLBAR_TITLE, albumTitle);
-        ArrayList<Song> songArrayList = MusicUtils.getSongListByAlbumTitle(getContext(), albumTitle);
+        ArrayList<Song> songArrayList = MusicUtils.getSongListByTitle(getContext(), albumTitle);
         MusicUtils.setDisplaySongList(songArrayList);
-        SongFragmentWithBar songFragmentWithBar = new SongFragmentWithBar();
-        songFragmentWithBar.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songFragmentWithBar).addToBackStack(null).commit();
+        SongListFragmentWithBar songListFragmentWithBar = new SongListFragmentWithBar();
+        songListFragmentWithBar.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songListFragmentWithBar).addToBackStack(null).commit();
     }
 }

@@ -18,7 +18,7 @@ import com.example.main.simplemp3_2.Utils.MusicConstants;
 import com.example.main.simplemp3_2.Utils.MusicController;
 
 public class MusicNotificationReceiver extends BroadcastReceiver implements MusicConstants {
-    private final static String TAG = "mNotification";
+    private final static String TAG = "NotificationReceiver";
     public RemoteViews mRemoteViews;
     public NotificationManager mNotificationManager;
     public Notification mBuilder;
@@ -59,51 +59,61 @@ public class MusicNotificationReceiver extends BroadcastReceiver implements Musi
         intentFilter.addAction(NOTIFICATION_PLAY_PREV);
         intentFilter.addAction(NOTIFICATION_PLAY_NEXT);
         intentFilter.addAction(NOTIFICATION_CLOSE_NOTIFICATION);
-
+        intentFilter.addAction(NOTIFICATION_CREATE_NOTIFICATION);
+        intentFilter.addAction(NOTIFICATION_CLOSE_NOTIFICATION_ONLY);
         context.registerReceiver(this, intentFilter);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(NOTIFICATION_CLOSE_NOTIFICATION)) {
-            musicController.pauseSong();
-            musicController.stopForeground();
-            mBuilder = null;
-            return;
-        } else if (intent.getAction().equals(NOTIFICATION_PLAY)) {
-            if (musicController.getSongPlayingPosition() == 0) {
-                musicController.playSong();
-            }else if (musicController.isPlaying()) {
+        Log.i(TAG, "onReceive: " + intent.getAction());
+        switch (intent.getAction()) {
+            case NOTIFICATION_CLOSE_NOTIFICATION_ONLY :
+                musicController.stopForeground();
+                mBuilder = null;
+                break;
+            case NOTIFICATION_CLOSE_NOTIFICATION :
                 musicController.pauseSong();
-                intent.setAction(ACTION_PAUSE);
-            }else {
-                musicController.continueSong();
-            }
-        }else if (intent.getAction().equals(NOTIFICATION_PLAY_NEXT)) {
-            musicController.nextSong();
-        } else if (intent.getAction().equals(NOTIFICATION_PLAY_PREV)) {
-            musicController.prevSong();
+                musicController.stopForeground();
+                mBuilder = null;
+                break;
+            case NOTIFICATION_PLAY :
+                if (musicController.getSongPlayingPosition() == 0) {
+                    musicController.playSong();
+                    mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_pause);
+                }else if (musicController.isPlaying()) {
+                    musicController.pauseSong();
+                    mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
+                }else {
+                    musicController.continueSong();
+                }
+                break;
+            case NOTIFICATION_PLAY_NEXT :
+                musicController.nextSong();
+                break;
+            case ACTION_PLAY_PREV :
+                musicController.prevSong();
+                break;
+            case NOTIFICATION_CREATE_NOTIFICATION :
+                createNotification();
+                break;
         }
-        updateNotificationUI(intent.getAction());
     }
 
     public void updateNotificationUI(String tag) {
-        if (mBuilder == null) {
-            createNotification();
-        }
+        Log.i(TAG, "updateNotificationUI: " + tag);
         if (tag.equals(ACTION_PLAY)) {
             mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_pause);
+            mRemoteViews.setTextViewText(R.id.noteTitle, musicController.getCurrentSong().getTitle());
+            mRemoteViews.setTextViewText(R.id.noteArtist, musicController.getCurrentSong().getArtist());
         }else if (tag.equals(ACTION_PAUSE)) {
             mRemoteViews.setImageViewResource(R.id.notePlay, R.drawable.note_btn_play);
         }
-        mRemoteViews.setTextViewText(R.id.noteTitle, musicController.getCurrentSong().getTitle());
-        mRemoteViews.setTextViewText(R.id.noteArtist, musicController.getCurrentSong().getArtist());
-        mNotificationManager.notify(1, mBuilder);
+        if (mBuilder != null)
+            mNotificationManager.notify(1, mBuilder);
     }
 
     public void createNotification() {
-        Log.i(TAG, "createNotification: ");
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String CHANNEL_ID = "Channel01";
             if (notificationChannel == null) {

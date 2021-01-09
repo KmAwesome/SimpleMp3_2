@@ -223,16 +223,28 @@ public class MusicService extends Service implements MusicConstants {
                 mediaPlayer.prepareAsync();
                 isPause = false;
                 updateWidget(ACTION_PLAY);
-                musicNotificationReceiver.updateNotificationUI(ACTION_PLAY);
                 sendBroadcast(new Intent().setAction(ACTION_PLAY));
+                musicNotificationReceiver.updateNotificationUI(ACTION_PLAY);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public void continueSong() {
+        if (songList.size() > 0) {
+            Log.i(TAG, "continueSong: ");
+            mediaPlayer.start();
+            updateWidget(ACTION_PLAY);
+            musicNotificationReceiver.updateNotificationUI(ACTION_PLAY);
+            sendBroadcast(new Intent().setAction(ACTION_PLAY));
+            isPause = false;
+        }
+    }
+
     public void pauseSong() {
         if (songList.size() > 0) {
+            Log.i(TAG, "pauseSong: ");
             mediaPlayer.pause();
             updateWidget(ACTION_PAUSE);
             musicNotificationReceiver.updateNotificationUI(ACTION_PAUSE);
@@ -241,14 +253,14 @@ public class MusicService extends Service implements MusicConstants {
         }
     }
 
-    public void continueSong() {
-        if (songList.size() > 0) {
-            mediaPlayer.start();
-            updateWidget(ACTION_PLAY);
-            musicNotificationReceiver.updateNotificationUI(ACTION_PLAY);
-            sendBroadcast(new Intent().setAction(ACTION_PLAY));
-            isPause = false;
+    public void stopSong() {
+        Log.i(TAG, "stopSong: ");
+        if (getSongPlayingPosition() != 0) {
+            mediaPlayer.pause();
+            Log.i(TAG, "stopSong: @@");
         }
+        setSongIndex(0);
+        sendBroadcast(new Intent().setAction(ACTION_STOP));
     }
 
     public void prevSong() {

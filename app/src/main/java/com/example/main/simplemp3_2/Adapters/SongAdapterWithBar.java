@@ -47,6 +47,28 @@ public class SongAdapterWithBar extends RecyclerView.Adapter<SongAdapterWithBar.
         songArrayList = MusicUtils.getDisplaySongList();
     }
 
+    @Override
+    public SongAdapterWithBar.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_song, viewGroup, false);
+        ViewHolder myViewHolder = new ViewHolder(view);
+        return myViewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(final SongAdapterWithBar.ViewHolder viewHolder, int i) {
+        viewHolder.songView.setText(songArrayList.get(i).getTitle());
+        viewHolder.artistView.setText(songArrayList.get(i).getArtist());
+        String sDuration = String.format("%2d:%02d", TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()),
+                TimeUnit.MILLISECONDS.toSeconds(songArrayList.get(i).getDuration()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()))
+        );
+        viewHolder.durationView.setText(sDuration);
+    }
+
+    @Override
+    public int getItemCount() {
+        return songArrayList.size();
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView songView, artistView, durationView;
         public ImageView logoView;
@@ -98,9 +120,8 @@ public class SongAdapterWithBar extends RecyclerView.Adapter<SongAdapterWithBar.
                                     alertDialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
-                                            FileUtils.deleteSongFile(context, songArrayList.get(getAdapterPosition()).getPath());
-                                            songArrayList.remove(getAdapterPosition());
-                                            notifyDataSetChanged();
+                                            FileUtils.deleteSongFile(context, songArrayList, getAdapterPosition(), musicController);
+                                            refreshAdapterView();
                                         }
                                     });
                                     alertDialog.setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -121,28 +142,6 @@ public class SongAdapterWithBar extends RecyclerView.Adapter<SongAdapterWithBar.
         }
     }
 
-    @Override
-    public SongAdapterWithBar.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_song, viewGroup, false);
-        ViewHolder myViewHolder = new ViewHolder(view);
-        return myViewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(final SongAdapterWithBar.ViewHolder viewHolder, int i) {
-        viewHolder.songView.setText(songArrayList.get(i).getTitle());
-        viewHolder.artistView.setText(songArrayList.get(i).getArtist());
-        String sDuration = String.format("%2d:%02d", TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()),
-                TimeUnit.MILLISECONDS.toSeconds(songArrayList.get(i).getDuration()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(songArrayList.get(i).getDuration()))
-        );
-        viewHolder.durationView.setText(sDuration);
-    }
-
-    @Override
-    public int getItemCount() {
-        return songArrayList.size();
-    }
-
     public void refreshAdapterView() {
         ArrayList<Song> songs = MusicUtils.getSongList(context);
         ArrayList<Song> tempSongs = new ArrayList<>();
@@ -156,5 +155,4 @@ public class SongAdapterWithBar extends RecyclerView.Adapter<SongAdapterWithBar.
         songArrayList = tempSongs;
         notifyDataSetChanged();
     }
-
 }

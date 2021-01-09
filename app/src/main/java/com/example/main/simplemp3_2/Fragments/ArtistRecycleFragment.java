@@ -29,27 +29,27 @@ public class ArtistRecycleFragment extends Fragment implements ArtistRecycleAdap
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        artistStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ARTIST);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         DividerItemDecoration mDivider = new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL);
-        View view = inflater.inflate(R.layout.recycleview_container,container,false);
+        View view = inflater.inflate(R.layout.song_list_container,container,false);
         artistRecycleView = view.findViewById(R.id.recycleview_main);
         artistRecycleView.addItemDecoration(mDivider);
         artistRecycleView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(context);
         artistRecycleView.setLayoutManager(layoutManager);
-        artistRecycleAdapter = new ArtistRecycleAdapter(context, artistStringList);
-        artistRecycleAdapter.setOnItemClickListener(this);
-        artistRecycleView.setAdapter(artistRecycleAdapter);
         return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        artistStringList = MusicUtils.getStringListByType(context, MusicUtils.TYPE_ARTIST);
+        artistRecycleAdapter = new ArtistRecycleAdapter(context, artistStringList);
+        artistRecycleAdapter.setOnItemClickListener(this);
+        artistRecycleView.setAdapter(artistRecycleAdapter);
     }
 
     @Override
@@ -60,9 +60,9 @@ public class ArtistRecycleFragment extends Fragment implements ArtistRecycleAdap
         bundle.putString(ARGUMENTS_TOOLBAR_TITLE, artsitTitle);
         ArrayList<Song> songArrayList = MusicUtils.getSongListByTitle(context, artsitTitle);
         MusicUtils.setDisplaySongList(songArrayList);
-        SongFragmentWithBar songFragmentWithBar = new SongFragmentWithBar();
-        songFragmentWithBar.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songFragmentWithBar).addToBackStack(null).commit();
+        SongListFragmentWithBar songListFragmentWithBar = new SongListFragmentWithBar();
+        songListFragmentWithBar.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songListFragmentWithBar).addToBackStack(null).commit();
     }
 
 }

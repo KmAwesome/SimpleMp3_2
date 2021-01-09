@@ -89,15 +89,16 @@ public class SongFilterDialog extends AlertDialog.Builder {
                                 ((MainActivity)context).runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        MusicUtils.updateSongList(context);
-                                        ((MainActivity) context).refreshAllFragment();
                                         int songs = MusicUtils.getSongList(context).size();
+                                        if (context instanceof MainActivity) {
+                                            ((MainActivity)context).refreshAllFragment();
+                                        }
                                         Toast.makeText(context.getApplicationContext(), "新增" + songs +
                                                 "首歌曲至音樂庫", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             } else {
-                                throw new RuntimeException(context.toString() + "Use Only MainActivity");
+                                throw new RuntimeException(context.toString() + "Used Only In MainActivity");
                             }
                         }
 

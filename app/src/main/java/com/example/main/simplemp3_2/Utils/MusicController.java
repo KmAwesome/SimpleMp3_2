@@ -66,6 +66,10 @@ public class MusicController {
         musicService.pauseSong();
     }
 
+    public void stopSong() {
+        musicService.stopSong();
+    }
+
     public void continueSong() {
         musicService.continueSong();
     }

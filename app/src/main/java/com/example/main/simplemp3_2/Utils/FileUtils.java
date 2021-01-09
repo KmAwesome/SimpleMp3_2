@@ -1,7 +1,10 @@
 package com.example.main.simplemp3_2.Utils;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -9,6 +12,7 @@ import android.util.Log;
 import com.example.main.simplemp3_2.Activity.MainActivity;
 import com.example.main.simplemp3_2.Activity.EditMusicInfoActivity;
 import com.example.main.simplemp3_2.Models.Song;
+import com.google.android.gms.common.internal.service.Common;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -30,13 +34,39 @@ public class FileUtils {
         context.startActivity(intent);
     }
 
-    public static void deleteSongFile(Context context, String musicPath) {
+    public static void deleteSongFile(Context context, ArrayList<Song> songArrayList, int songIndex, MusicController musicController) {
+        long songId = songArrayList.get(songIndex).getId();
+        Uri uri = Uri.parse("content://media/external/audio/media/" + songId);
+        String musicPath = getRealPathFromURI(context, uri);
         File file = new File(musicPath);
         if (file.exists()) {
             Log.i(TAG, "deleteSongFile: " + musicPath);
+            if (musicController.getCurrentSong().getId() == songId) {
+                musicController.stopSong();
+            }
             file.delete();
             context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, MediaStore.MediaColumns.DATA + "='" + musicPath + "'", null);
-            ((MainActivity)context).refreshAllFragment();
+            MusicUtils.updateSongList(context);
+            if (context instanceof MainActivity) {
+                ((MainActivity)context).refreshAllFragment();
+            }
+        } else {
+            Log.i(TAG, "deleteSongFile: File is not exists" );
+        }
+    }
+
+    public static String getRealPathFromURI(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -55,7 +85,7 @@ public class FileUtils {
         String playList = gson.toJson(playListArrayList);
         editor.putString(KEY_PLAY_LIST, playList);
         editor.apply();
-        Log.i(TAG, "savePlayListData: size = " + playList);
+        Log.i(TAG, "SavePlayListData: size = " + playList);
     }
 
     public static ArrayList<String> readPlayListData(Context context) {

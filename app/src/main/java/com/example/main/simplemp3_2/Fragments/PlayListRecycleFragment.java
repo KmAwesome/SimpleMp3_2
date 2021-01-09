@@ -53,16 +53,15 @@ public class PlayListRecycleFragment extends Fragment implements PlayListRecycle
         playListRecyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(context);
         playListRecyclerView.setLayoutManager(layoutManager);
-        playListRecycleAdapter = new PlayListRecycleAdapter(context, playListStringList);
-        playListRecycleAdapter.setOnItemClickListener(this);
-        playListRecyclerView.setAdapter(playListRecycleAdapter);
         return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        playListRecycleAdapter.refreshAdapterView();
+        playListRecycleAdapter = new PlayListRecycleAdapter(context, playListStringList);
+        playListRecycleAdapter.setOnItemClickListener(this);
+        playListRecyclerView.setAdapter(playListRecycleAdapter);
     }
 
     private class AddPlayListListener implements View.OnClickListener {
@@ -102,9 +101,9 @@ public class PlayListRecycleFragment extends Fragment implements PlayListRecycle
         MusicUtils.setDisplaySongList(songArrayList);
         Bundle bundle = new Bundle();
         bundle.putSerializable(ARGUMENTS_TOOLBAR_TITLE, playListTitle);
-        SongFragmentWithBar songFragmentWithBar = new SongFragmentWithBar();
-        songFragmentWithBar.setArguments(bundle);
-        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songFragmentWithBar).addToBackStack(null).commit();
+        SongListFragmentWithBar songListFragmentWithBar = new SongListFragmentWithBar();
+        songListFragmentWithBar.setArguments(bundle);
+        getFragmentManager().beginTransaction().replace(R.id.frameLayout, songListFragmentWithBar).addToBackStack(null).commit();
     }
 
 }
